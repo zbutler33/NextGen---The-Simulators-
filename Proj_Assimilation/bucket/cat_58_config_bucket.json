@@ -1,0 +1,9 @@
+{
+    "forcing_file":"../forcing/cat58_01Dec2015.csv",
+    "surface_area_m2":100,
+    "outlet_cross_area_m2":0.001,
+    "outlet_elevation_m": 5,
+    "max_water_surface_elevation_m":10,
+    "latitude":35,
+    "discharge_coefficient":0.4
+}
