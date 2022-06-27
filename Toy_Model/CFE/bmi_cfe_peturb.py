@@ -455,7 +455,7 @@ class BMI_CFE():
         #perturb_percent = 0.75
         #Perturbation_for_DA =  np.random.uniform(1-perturb_percent, 1+perturb_percent)
         #self.surface_runoff_m = self.total_discharge * Perturbation_for_DA
-        self.surface_runoff_m = self.total_discharge * 3 
+        self.surface_runoff_m = self.total_discharge * 3 #delete me edit 
         #--------------------------------------------------------
         
         self._values['land_surface_water__runoff_depth'] = self.surface_runoff_m/1000
