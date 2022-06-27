@@ -5,11 +5,11 @@ import sys
 import json
 import Assimilation
 
-class BMI_Assimilatoin():
+class BMI_Assimilation():
     def __init__(self):
         
         """Create an assimilation Bmi model that is ready for initialization."""
-        super(BMI_Assimilatoin, self).__init__()
+        super(BMI_Assimilation, self).__init__()
         self._values = {}
         self._var_loc = "node"
         self._var_grid_id = 0
@@ -77,7 +77,7 @@ class BMI_Assimilatoin():
         ############################################################
         # ________________________________________________________ #
         # GET VALUES FROM CONFIGURATION FILE.                      #
-        self.config_from_json()                                    #
+        # self.config_from_json()                                    #
         
         # ________________________________________________
         # Time control
@@ -90,7 +90,8 @@ class BMI_Assimilatoin():
 
         # ________________________________________________
         # Initial value
-        self.site = self.site
+        self.obs = self.obs
+        self.cfe = self.cfe
 
         # ________________________________________________
         # Inputs
@@ -109,7 +110,7 @@ class BMI_Assimilatoin():
         # ________________________________________________________________ #
         # ________________________________________________________________ #
         # CREATE AN INSTANCE OF THE SIMPLE USGS MODEL #
-        self.DA_model = Assimilation.Assimilation()
+        self.DA_model = Assimilation.Assimilation(self.cfe, self.obs)
         # ________________________________________________________________ #
         # ________________________________________________________________ #
         ####################################################################
