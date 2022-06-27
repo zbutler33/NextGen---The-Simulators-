@@ -3,12 +3,13 @@ import numpy as np
 import pandas as pd
 import sys
 import json
-import usgs
+import Assimilation
 
-class BMI_USGS():
+class BMI_Assimilatoin():
     def __init__(self):
-        """Create a Bmi USGS model that is ready for initialization."""
-        super(BMI_USGS, self).__init__()
+        
+        """Create an assimilation Bmi model that is ready for initialization."""
+        super(BMI_Assimilatoin, self).__init__()
         self._values = {}
         self._var_loc = "node"
         self._var_grid_id = 0
@@ -28,14 +29,12 @@ class BMI_USGS():
         #---------------------------------------------
         # Input variable names (CSDMS standard names)
         #---------------------------------------------
-        self._input_var_names = [
-            'sites',
-            'service', 'start','end']
+        self._input_var_names = ['cfe','obs']
     
         #---------------------------------------------
         # Output variable names (CSDMS standard names)
         #---------------------------------------------
-        self._output_var_names = ['USGS__streamflow']
+        self._output_var_names = ['USGS_DA']
         
         #------------------------------------------------------
         # Create a Python dictionary that maps CSDMS Standard
@@ -44,10 +43,9 @@ class BMI_USGS():
         #     since the input variable names could come from any forcing...
         #------------------------------------------------------
         self._var_name_units_map = {
-                                'USGS__streamflow':['USGS__streamflow','m3'],
-                                'sites':['sites','NA'],
-                                'start':['start','Day'],'end':['end','Day'],
-                                'service':['service','NA'],
+                                'USGS_DA':['USGS_DA','cfs'],
+                                'cfe':['cfe','cfs'],
+                                'obs':['obs','cfs'],
             #--------------   Dynamic inputs --------------------------------
                           }
 
@@ -111,7 +109,7 @@ class BMI_USGS():
         # ________________________________________________________________ #
         # ________________________________________________________________ #
         # CREATE AN INSTANCE OF THE SIMPLE USGS MODEL #
-        self.usgs_model = usgs.USGS()
+        self.DA_model = Assimilation.Assimilation()
         # ________________________________________________________________ #
         # ________________________________________________________________ #
         ####################################################################
@@ -121,7 +119,7 @@ class BMI_USGS():
     # __________________________________________________________________________________________________________
     # BMI: Model Control Function
     def update(self):
-        self.usgs_model.run_usgs(self)
+        self.DA_model.run_assimilation(self)
         #self.scale_output()
 
     # __________________________________________________________________________________________________________
@@ -129,7 +127,7 @@ class BMI_USGS():
     # BMI: Model Control Function
     def update_until(self, until):
         for i in range(self.current_time_step, until, self.time_step_size):
-            self.usgs_model.run_usgs(self)
+            self.DA_model.run_assimilation(self)
             self.scale_output()
             self.current_time += self.time_step_size
 
@@ -147,33 +145,33 @@ class BMI_USGS():
         self.reset_total_volume_tracking()
 
         """Finalize model."""
-        self.usgs_model = None
-        self.usgs_state = None
+        self.DA_model = None
+        self.DA_state = None
     
     # ________________________________________________
 
     
     #________________________________________________________
-    def config_from_json(self):
-        with open(self.cfg_file) as data_file:
-            data_loaded = json.load(data_file)
-
-        # ___________________________________________________
-        # MANDATORY CONFIGURATIONS
-        self.site                  = data_loaded['sites']
-        self.service                = data_loaded['service']
-        self.start            = data_loaded['start']
-        self.end          = data_loaded['end']
-
-        # ___________________________________________________
-        # OPTIONAL CONFIGURATIONS
-        if 'stand_alone' in data_loaded.keys():
-            self.stand_alone                    = data_loaded['stand_alone']
-        if 'forcing_file' in data_loaded.keys():
-            self.reads_own_forcing              = True
-            self.forcing_file                   = data_loaded['forcing_file']
-         
-        return
+#    def config_from_json(self):
+#        with open(self.cfg_file) as data_file:
+#            data_loaded = json.load(data_file)
+#
+#        # ___________________________________________________
+#        # MANDATORY CONFIGURATIONS
+#        self.site                  = data_loaded['sites']
+#        self.service                = data_loaded['service']
+#        self.start            = data_loaded['start']
+#        self.end          = data_loaded['end']
+#
+#        # ___________________________________________________
+#        # OPTIONAL CONFIGURATIONS
+#        if 'stand_alone' in data_loaded.keys():
+#            self.stand_alone                    = data_loaded['stand_alone']
+#        if 'forcing_file' in data_loaded.keys():
+#            self.reads_own_forcing              = True
+#            self.forcing_file                   = data_loaded['forcing_file']
+#         
+#        return
 
     
 

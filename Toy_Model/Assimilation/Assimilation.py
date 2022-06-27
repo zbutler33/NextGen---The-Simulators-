@@ -8,11 +8,11 @@ This framework will build in complication but start simple by 'nudging'
 
 class Assimilation():
     
-    def __init__(self, peturb, cfe):
+    def __init__(self, obs, cfe):
         super(Assimilation, self).__init__()
         
         self.simulated = cfe
-        self.observed = peturb
+        self.observed = obs
         self.assimilation = []
 
     def run_assimilation(self): #two inputs of petrubed CFE and model CFE
