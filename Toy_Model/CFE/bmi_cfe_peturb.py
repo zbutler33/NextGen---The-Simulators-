@@ -222,7 +222,8 @@ class BMI_CFE():
 
         # ----------- The output is area normalized, this is needed to un-normalize it
         #                         mm->m                             km2 -> m2          hour->s    
-        self.output_factor_cms =  (1/1000) * (self.catchment_area_km2 * 1000*1000) * (1/3600)
+        self.output_factor_cms =  (1/1000) * (self.catchment_area_km2 * 1000*1000) * (1/3600) 
+        
 
         ####################################################################
         # ________________________________________________________________ #
@@ -449,7 +450,12 @@ class BMI_CFE():
     #------------------------------------------------------------ 
     def scale_output(self):
             
-        self.surface_runoff_m = self.total_discharge
+        #ZB, 6/24. Adding peturbation based on random distribution    
+        perturb_percent = 0.5
+        Perturbation_for_DA =  np.random.uniform(1-perturb_percent, 1+perturb_percent)
+        self.surface_runoff_m = self.total_discharge * Perturbation_for_DA
+
+        #
         self._values['land_surface_water__runoff_depth'] = self.surface_runoff_m/1000
         self.streamflow_cms = self._values['land_surface_water__runoff_depth'] * self.output_factor_cms
 
