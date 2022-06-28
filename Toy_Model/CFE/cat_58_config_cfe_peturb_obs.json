@@ -1,7 +1,7 @@
 {
     "forcing_file":"./Forcing/cat58_01Dec2015.csv",
     "catchment_area_km2":15.617167355002097,
-    "peturbed_factor": 0.15,
+    "peturbation_factor": 0.15,
     "alpha_fc":0.33,
     "soil_params":{
                    "depth":2.0,
