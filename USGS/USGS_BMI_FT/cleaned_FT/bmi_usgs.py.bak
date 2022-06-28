@@ -21,7 +21,7 @@ class BMI_USGS():
         self._att_map = {
             'model_name':         'USGS with a hole in it',
             'version':            '1.0',
-            'author_name':        'FW',
+            'author_name':        'Fitsume wolkeba',
             'grid_type':          'scalar',
             'time_units':         '1 hr' }
     
