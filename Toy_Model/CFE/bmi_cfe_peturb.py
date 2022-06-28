@@ -1,3 +1,4 @@
+import numbers
 import time
 import numpy as np
 import pandas as pd
@@ -241,6 +242,8 @@ class BMI_CFE():
     def update(self):
         self.cfe_model.run_cfe(self)
         self.scale_output()
+        self.surface_runoff_m_ens = []
+        self.peturbed_output() 
 
     # __________________________________________________________________________________________________________
     # __________________________________________________________________________________________________________
@@ -249,6 +252,8 @@ class BMI_CFE():
         for i in range(self.current_time_step, until):
             self.cfe_model.run_cfe(self)
             self.scale_output()
+            self.surface_runoff_m_ens = []
+            self.peturbed_output() 
             if verbose:
                 print("total discharge: {}".format(self.total_discharge))
                 print("at time: {}".format(self.current_time))
@@ -297,6 +302,8 @@ class BMI_CFE():
 
         # ___________________________________________________
         # MANDATORY CONFIGURATIONS
+        self.peturbation_factor         = data_loaded['peturbation_factor']
+        self.number_of_ensemble         = data_loaded['number_of_ensemble']
         self.forcing_file               = data_loaded['forcing_file']
         self.catchment_area_km2         = data_loaded['catchment_area_km2']
         self.alpha_fc                   = data_loaded['alpha_fc']
@@ -446,16 +453,18 @@ class BMI_CFE():
                 plt.show()
                 plt.close()
     
+    #------------------------------------------------------------
+    def peturbed_output(self):
+        for n in range(number_of_ensemble):
+            perturb_percent = self.peturbation_factor
+            Perturbation_for_DA =  np.random.uniform(1-perturb_percent, 1+perturb_percent)
+            self.surface_runoff_m_ens.append(self.total_discharge * Perturbation_for_DA) #creating list
     
     #------------------------------------------------------------ 
     def scale_output(self):
             
         #--------------------------------------------------------
         # ZB, 6/24. Adding peturbation to CFE based on random uniform distribution    
-        #perturb_percent = 0.75
-        #Perturbation_for_DA =  np.random.uniform(1-perturb_percent, 1+perturb_percent)
-        #self.surface_runoff_m = self.total_discharge * Perturbation_for_DA
-        self.surface_runoff_m = self.total_discharge * 3 #delete me edit 
         #--------------------------------------------------------
         
         self._values['land_surface_water__runoff_depth'] = self.surface_runoff_m/1000
