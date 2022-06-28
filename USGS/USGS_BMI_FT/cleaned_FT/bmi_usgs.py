@@ -21,16 +21,15 @@ class BMI_USGS():
         self._att_map = {
             'model_name':         'USGS with a hole in it',
             'version':            '1.0',
-            'author_name':        'Jonathan Martin Frame',
+            'author_name':        'FW',
             'grid_type':          'scalar',
-            'time_units':         '1 second' }
+            'time_units':         '1 hr' }
     
         #---------------------------------------------
         # Input variable names (CSDMS standard names)
         #---------------------------------------------
         self._input_var_names = [
-            'sites',
-            'service', 'start','end']
+            'sites','service', 'start','end']
     
         #---------------------------------------------
         # Output variable names (CSDMS standard names)
@@ -44,10 +43,9 @@ class BMI_USGS():
         #     since the input variable names could come from any forcing...
         #------------------------------------------------------
         self._var_name_units_map = {
-                                'USGS__streamflow':['USGS__streamflow','m3'],
-                                'sites':['sites','NA'],
+                                'USGS__streamflow':['USGS__streamflow','cfs'],
+                                'sites':['sites','NA'],'service':['service','NA'],
                                 'start':['start','Day'],'end':['end','Day'],
-                                'service':['service','NA'],
             #--------------   Dynamic inputs --------------------------------
                           }
 
@@ -88,23 +86,16 @@ class BMI_USGS():
         self.current_time_step = 0
         self.current_time = self.current_time_step
         
-        
-
-        # ________________________________________________
+            # ________________________________________________
         # Initial value
-        self.site = self.site
-
+        sites = self.sites
+        service  =self.service      
+        start  =self.start          
+        end    =self.end      
+        
         # ________________________________________________
         # Inputs
-        self.input_mm = 0
-        self.outlet_m = 0
-        self.potential_et_m_per_s      = 0
-        
-        # ________________________________________________
-        # Evapotranspiration
-        self.potential_et_m_per_timestep = 0
-        self.actual_et_m_per_timestep    = 0
-         
+
         # ________________________________________________
         
         ####################################################################
@@ -112,6 +103,7 @@ class BMI_USGS():
         # ________________________________________________________________ #
         # CREATE AN INSTANCE OF THE SIMPLE USGS MODEL #
         self.usgs_model = usgs.USGS()
+        #print(self.end)
         # ________________________________________________________________ #
         # ________________________________________________________________ #
         ####################################################################
@@ -122,6 +114,7 @@ class BMI_USGS():
     # BMI: Model Control Function
     def update(self):
         self.usgs_model.run_usgs(self)
+        #print(self.sites)
         #self.scale_output()
 
     # __________________________________________________________________________________________________________
@@ -141,17 +134,29 @@ class BMI_USGS():
     # __________________________________________________________________________________________________________
     # __________________________________________________________________________________________________________
     # BMI: Model Control Function
-    def finalize(self,print_mass_balance=False):
+    def finalize(self,print_flow=False):
 
-        self.finalize_mass_balance(verbose=print_mass_balance)
-        self.reset_total_volume_tracking()
+        self.finalize_flow(verbose=print_flow)
+        self.reset_usgs_stations()
 
         """Finalize model."""
         self.usgs_model = None
         self.usgs_state = None
     
     # ________________________________________________
+    def reset_usgs_stations(self):
+        self.start             = 0
+        self.end       = 0
+        self.sites       = 0
 
+        return
+    def finalize_flow(self, verbose=True):
+        
+        self.flow       = self.start
+        if verbose:            
+            print("\n USGS observed flow for station ",self.sites,"is retrieved!")
+            print()
+        return
     
     #________________________________________________________
     def config_from_json(self):
@@ -160,18 +165,14 @@ class BMI_USGS():
 
         # ___________________________________________________
         # MANDATORY CONFIGURATIONS
-        self.site                  = data_loaded['sites']
-        self.service                = data_loaded['service']
+        self.sites                  = data_loaded['sites']
+        self.service           =data_loaded['service']
         self.start            = data_loaded['start']
         self.end          = data_loaded['end']
 
         # ___________________________________________________
         # OPTIONAL CONFIGURATIONS
-        if 'stand_alone' in data_loaded.keys():
-            self.stand_alone                    = data_loaded['stand_alone']
-        if 'forcing_file' in data_loaded.keys():
-            self.reads_own_forcing              = True
-            self.forcing_file                   = data_loaded['forcing_file']
+
          
         return
 

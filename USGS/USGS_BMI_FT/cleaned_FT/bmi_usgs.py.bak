@@ -5,9 +5,9 @@ import sys
 import json
 import usgs
 
-class BMI_usgs():
+class BMI_USGS():
     def __init__(self):
-        """Create a Bmi BUCKET model that is ready for initialization."""
+        """Create a Bmi USGS model that is ready for initialization."""
         super(BMI_USGS, self).__init__()
         self._values = {}
         self._var_loc = "node"
@@ -19,25 +19,22 @@ class BMI_usgs():
         # Required, static attributes of the model
         #----------------------------------------------
         self._att_map = {
-            'model_name':         'USGS data retriever',
+            'model_name':         'USGS with a hole in it',
             'version':            '1.0',
-            'author_name':        'Fitsume Tehsome Wolkeba',
+            'author_name':        'Fitsume wolkeba',
             'grid_type':          'scalar',
-            'time_units':         '1 hour' }
+            'time_units':         '1 hr' }
     
         #---------------------------------------------
         # Input variable names (CSDMS standard names)
         #---------------------------------------------
         self._input_var_names = [
-            'atmosphere_water__time_integral_of_precipitation_volume_flux',
-            'water_potential_evaporation_flux']
+            'sites','service', 'start','end']
     
         #---------------------------------------------
         # Output variable names (CSDMS standard names)
         #---------------------------------------------
-        self._output_var_names = ['bucket__overflow', 
-                                  'bucket__outlet',
-                                  'bucket__water_surface_elevation']
+        self._output_var_names = ['USGS__streamflow']
         
         #------------------------------------------------------
         # Create a Python dictionary that maps CSDMS Standard
@@ -46,12 +43,10 @@ class BMI_usgs():
         #     since the input variable names could come from any forcing...
         #------------------------------------------------------
         self._var_name_units_map = {
-                                'bucket__overflow':['bucket_overflow','m3'],
-                                'bucket__outlet':['bucket_outlet','m3'],
-                                'bucket__water_surface_elevation':['water_level_m','m'],
-                                #--------------   Dynamic inputs --------------------------------
-                                'water__input_volume_flux':['input_mm','kg m-2'],
-                                'water_potential_evaporation_flux':['potential_et_m_per_s','m s-1'],
+                                'USGS__streamflow':['USGS__streamflow','cfs'],
+                                'sites':['sites','NA'],'service':['service','NA'],
+                                'start':['start','Day'],'end':['end','Day'],
+            #--------------   Dynamic inputs --------------------------------
                           }
 
     #__________________________________________________________________
@@ -86,37 +81,29 @@ class BMI_usgs():
         
         # ________________________________________________
         # Time control
-        self.timestep_h = self.time_step_size / 3600.0
+        self.timestep_h = 1
         self.timestep_d = self.timestep_h / 24.0
         self.current_time_step = 0
         self.current_time = self.current_time_step
         
-        self.g = 9.81
-
-        # ________________________________________________
+            # ________________________________________________
         # Initial value
-        self.water_level_m = self.outlet_elevation_m
-
-        # ________________________________________________
-        # Inputs
-        self.input_mm = 0
-        self.outlet_m = 0
-        self.potential_et_m_per_s      = 0
+        sites = self.sites
+        service  =self.service      
+        start  =self.start          
+        end    =self.end      
         
         # ________________________________________________
-        # Evapotranspiration
-        self.potential_et_m_per_timestep = 0
-        self.actual_et_m_per_timestep    = 0
-         
+        # Inputs
+
         # ________________________________________________
-        # In order to check mass conservation at any time
-        self.reset_total_volume_tracking()
         
         ####################################################################
         # ________________________________________________________________ #
         # ________________________________________________________________ #
-        # CREATE AN INSTANCE OF THE SIMPLE BUCKET MODEL #
-        self.bucket_model = bucket.BUCKET()
+        # CREATE AN INSTANCE OF THE SIMPLE USGS MODEL #
+        self.usgs_model = usgs.USGS()
+        #print(self.end)
         # ________________________________________________________________ #
         # ________________________________________________________________ #
         ####################################################################
@@ -126,15 +113,16 @@ class BMI_usgs():
     # __________________________________________________________________________________________________________
     # BMI: Model Control Function
     def update(self):
-        self.bucket_model.run_bucket(self)
-        self.scale_output()
+        self.usgs_model.run_usgs(self)
+        #print(self.sites)
+        #self.scale_output()
 
     # __________________________________________________________________________________________________________
     # __________________________________________________________________________________________________________
     # BMI: Model Control Function
     def update_until(self, until):
         for i in range(self.current_time_step, until, self.time_step_size):
-            self.bucket_model.run_bucket(self)
+            self.usgs_model.run_usgs(self)
             self.scale_output()
             self.current_time += self.time_step_size
 
@@ -146,16 +134,63 @@ class BMI_usgs():
     # __________________________________________________________________________________________________________
     # __________________________________________________________________________________________________________
     # BMI: Model Control Function
-    def finalize(self,print_mass_balance=False):
+    def finalize(self,print_flow=False):
 
-        self.finalize_mass_balance(verbose=print_mass_balance)
-        self.reset_total_volume_tracking()
+        self.finalize_flow(verbose=print_flow)
+        self.reset_usgs_stations()
 
         """Finalize model."""
-        self.bucket_model = None
-        self.bucket_state = None
+        self.usgs_model = None
+        self.usgs_state = None
     
+    # ________________________________________________
+    def reset_usgs_stations(self):
+        self.start             = 0
+        self.end       = 0
+        self.sites       = 0
+
+        return
+    def finalize_flow(self, verbose=True):
+        
+        self.flow       = self.start
+        if verbose:            
+            print("\n USGS observed flow for station ",self.sites,"is retrieved!")
+            print()
+        return
     
+    #________________________________________________________
+    def config_from_json(self):
+        with open(self.cfg_file) as data_file:
+            data_loaded = json.load(data_file)
+
+        # ___________________________________________________
+        # MANDATORY CONFIGURATIONS
+        self.sites                  = data_loaded['sites']
+        self.service           =data_loaded['service']
+        self.start            = data_loaded['start']
+        self.end          = data_loaded['end']
+
+        # ___________________________________________________
+        # OPTIONAL CONFIGURATIONS
+
+         
+        return
+
+    
+
+    #-------------------------------------------------------------------
+    # BMI: Model Information Functions
+    #-------------------------------------------------------------------
+    #-------------------------------------------------------------------
+    
+    def get_attribute(self, att_name):
+    
+        try:
+            return self._att_map[ att_name.lower() ]
+        except:
+            print(' ERROR: Could not find attribute: ' + att_name)
+
+    #--------------------------------------------------------
     # Note: These are currently variables needed from other
     #       components vs. those read from files or GUI.
     #--------------------------------------------------------   
