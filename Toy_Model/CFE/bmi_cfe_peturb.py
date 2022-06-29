@@ -20,7 +20,7 @@ class BMI_CFE():
         # these need to be initialized here as scale_output() called in update()
         self.streamflow_cms = 0.0
         self.streamflow_fms = 0.0
-        self.surface_runoff_m = 0.0
+        self.surface_runoff_m_ens = []
 
         #----------------------------------------------
         # Required, static attributes of the model
@@ -43,12 +43,12 @@ class BMI_CFE():
         #---------------------------------------------
         # Output variable names (CSDMS standard names)
         #---------------------------------------------
-        self._output_var_names = ['land_surface_water__runoff_depth', 
-                                  'land_surface_water__runoff_volume_flux',
-                                  "DIRECT_RUNOFF",
-                                  "GIUH_RUNOFF",
-                                  "NASH_LATERAL_RUNOFF",
-                                  "DEEP_GW_TO_CHANNEL_FLUX"]
+        self._output_var_names = ['land_surface_water__runoff_depth_ens']
+        #                          'land_surface_water__runoff_volume_flux',
+        #                          "DIRECT_RUNOFF",
+        #                          "GIUH_RUNOFF",
+        #                          "NASH_LATERAL_RUNOFF",
+        #                          "DEEP_GW_TO_CHANNEL_FLUX"]
         
         #------------------------------------------------------
         # Create a Python dictionary that maps CSDMS Standard
@@ -58,7 +58,7 @@ class BMI_CFE():
         #------------------------------------------------------
         self._var_name_units_map = {
                                 'land_surface_water__runoff_volume_flux':['streamflow_cfs','ft3 s-1'],
-                                'land_surface_water__runoff_depth':['total_discharge','m'],
+                                'land_surface_water__runoff_depth_ens':['surface_runoff_m_ens','m'],
                                 #--------------   Dynamic inputs --------------------------------
                                 'atmosphere_water__time_integral_of_precipitation_mass_flux':['timestep_rainfall_input_m','kg m-2'],
                                 'water_potential_evaporation_flux':['potential_et_m_per_s','m s-1'],
@@ -78,6 +78,7 @@ class BMI_CFE():
         self.cfg_file = cfg_file
 
         self.current_time_step=current_time_step
+
 
         # ----- Create some lookup tabels from the long variable names --------#
         self._var_name_map_long_first = {long_name:self._var_name_units_map[long_name][0] for long_name in self._var_name_units_map.keys()}
@@ -241,9 +242,9 @@ class BMI_CFE():
     # BMI: Model Control Function
     def update(self):
         self.cfe_model.run_cfe(self)
+        self.peturbed_output()
         self.scale_output()
-        self.surface_runoff_m_ens = []
-        self.peturbed_output() 
+         
 
     # __________________________________________________________________________________________________________
     # __________________________________________________________________________________________________________
@@ -251,9 +252,9 @@ class BMI_CFE():
     def update_until(self, until, verbose=True):
         for i in range(self.current_time_step, until):
             self.cfe_model.run_cfe(self)
+            self.peturbed_output()
             self.scale_output()
-            self.surface_runoff_m_ens = []
-            self.peturbed_output() 
+             
             if verbose:
                 print("total discharge: {}".format(self.total_discharge))
                 print("at time: {}".format(self.current_time))
@@ -457,23 +458,27 @@ class BMI_CFE():
     # ZB, 6/24. Adding peturbation to CFE based on random uniform distribution     
     #--------------------------------------------------------
     def peturbed_output(self):
+        self.surface_runoff_m_ens = []
         for n in range(self.number_of_ensemble):
             perturb_percent = self.peturbation_factor
             Perturbation_for_DA =  np.random.uniform(1-perturb_percent, 1+perturb_percent)
             self.surface_runoff_m_ens.append(self.total_discharge * Perturbation_for_DA) #creating list
+            #print(self.surface_runoff_m_ens)
     
     #------------------------------------------------------------ 
     def scale_output(self):
-                    
-        self._values['land_surface_water__runoff_depth'] = self.surface_runoff_m/1000
-        self.streamflow_cms = self._values['land_surface_water__runoff_depth'] * self.output_factor_cms
+        #for n in range(self.number_of_ensemble):
+        #print(self.surface_runoff_m_ens)
+        
+        self._values['land_surface_water__runoff_depth_ens'] = list(np.array(self.surface_runoff_m_ens)/1000)
+        #self.streamflow_cms = self._values['land_surface_water__runoff_depth'] * self.output_factor_cms
 
-        self._values['land_surface_water__runoff_volume_flux'] = self.streamflow_cms * (1/35.314)
+        #self._values['land_surface_water__runoff_volume_flux'] = self.streamflow_cms * (1/35.314)
 
-        self._values["DIRECT_RUNOFF"] = self.surface_runoff_depth_m
-        self._values["GIUH_RUNOFF"] = self.flux_giuh_runoff_m
-        self._values["NASH_LATERAL_RUNOFF"] = self.flux_nash_lateral_runoff_m
-        self._values["DEEP_GW_TO_CHANNEL_FLUX"] = self.flux_from_deep_gw_to_chan_m
+        #self._values["DIRECT_RUNOFF"] = self.surface_runoff_depth_m
+        #self._values["GIUH_RUNOFF"] = self.flux_giuh_runoff_m
+        #self._values["NASH_LATERAL_RUNOFF"] = self.flux_nash_lateral_runoff_m
+        #self._values["DEEP_GW_TO_CHANNEL_FLUX"] = self.flux_from_deep_gw_to_chan_m
 
     #---------------------------------------------------------------------------- 
     def initialize_forcings(self):
