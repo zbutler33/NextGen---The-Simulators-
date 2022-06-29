@@ -455,7 +455,7 @@ class BMI_CFE():
     
     #------------------------------------------------------------
     def peturbed_output(self):
-        for n in range(number_of_ensemble):
+        for n in range(self.number_of_ensemble):
             perturb_percent = self.peturbation_factor
             Perturbation_for_DA =  np.random.uniform(1-perturb_percent, 1+perturb_percent)
             self.surface_runoff_m_ens.append(self.total_discharge * Perturbation_for_DA) #creating list
