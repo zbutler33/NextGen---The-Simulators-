@@ -454,6 +454,8 @@ class BMI_CFE():
                 plt.close()
     
     #------------------------------------------------------------
+    # ZB, 6/24. Adding peturbation to CFE based on random uniform distribution     
+    #--------------------------------------------------------
     def peturbed_output(self):
         for n in range(self.number_of_ensemble):
             perturb_percent = self.peturbation_factor
@@ -462,11 +464,7 @@ class BMI_CFE():
     
     #------------------------------------------------------------ 
     def scale_output(self):
-            
-        #--------------------------------------------------------
-        # ZB, 6/24. Adding peturbation to CFE based on random uniform distribution    
-        #--------------------------------------------------------
-        
+                    
         self._values['land_surface_water__runoff_depth'] = self.surface_runoff_m/1000
         self.streamflow_cms = self._values['land_surface_water__runoff_depth'] * self.output_factor_cms
 
