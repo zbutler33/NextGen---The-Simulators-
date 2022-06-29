@@ -449,7 +449,7 @@ class BMI_CFE():
     #------------------------------------------------------------ 
     def scale_output(self):
             
-        self.surface_runoff_m = self.total_discharge
+        self.surface_runoff_m = self.total_discharge 
         self._values['land_surface_water__runoff_depth'] = self.surface_runoff_m/1000
         self.streamflow_cms = self._values['land_surface_water__runoff_depth'] * self.output_factor_cms
 
