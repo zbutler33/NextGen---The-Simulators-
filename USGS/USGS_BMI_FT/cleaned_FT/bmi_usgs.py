@@ -7,7 +7,7 @@ import usgs
 
 class BMI_USGS():
     def __init__(self):
-        """Create a Bmi USGS model that is ready for initialization."""
+        """Create a Bmi USGS data retrieval ready for initialization."""
         super(BMI_USGS, self).__init__()
         self._values = {}
         self._var_loc = "node"
@@ -21,7 +21,7 @@ class BMI_USGS():
         self._att_map = {
             'model_name':         'USGS with a hole in it',
             'version':            '1.0',
-            'author_name':        'FW',
+            'author_name':        'Fitsume wolkeba',
             'grid_type':          'scalar',
             'time_units':         '1 hr' }
     
@@ -34,19 +34,17 @@ class BMI_USGS():
         #---------------------------------------------
         # Output variable names (CSDMS standard names)
         #---------------------------------------------
-        self._output_var_names = ['USGS__streamflow']
+        self._output_var_names = ['Flow','validity']
         
         #------------------------------------------------------
-        # Create a Python dictionary that maps CSDMS Standard
-        # Names to the model's internal variable names.
-        # This is going to get long, 
-        #     since the input variable names could come from any forcing...
+        # Create a Python dictionary that maps CSDMS Standard Names to the model's internal variable names.
+
         #------------------------------------------------------
         self._var_name_units_map = {
-                                'USGS__streamflow':['USGS__streamflow','cfs'],
+                                'Flow':['USGS__streamflow','cfs'],
+                                'validity':['missing_data_check','binary'],
                                 'sites':['sites','NA'],'service':['service','NA'],
                                 'start':['start','Day'],'end':['end','Day'],
-            #--------------   Dynamic inputs --------------------------------
                           }
 
     #__________________________________________________________________
@@ -80,7 +78,7 @@ class BMI_USGS():
         self.config_from_json()                                    #
         
         # ________________________________________________
-        # Time control
+        # Time control if incase update until may be used
         self.timestep_h = 1
         self.timestep_d = self.timestep_h / 24.0
         self.current_time_step = 0
@@ -94,10 +92,7 @@ class BMI_USGS():
         end    =self.end      
         
         # ________________________________________________
-        # Inputs
 
-        # ________________________________________________
-        
         ####################################################################
         # ________________________________________________________________ #
         # ________________________________________________________________ #
@@ -119,7 +114,7 @@ class BMI_USGS():
 
     # __________________________________________________________________________________________________________
     # __________________________________________________________________________________________________________
-    # BMI: Model Control Function
+    # BMI: Model Control Function if update until may be used (not functional)
     def update_until(self, until):
         for i in range(self.current_time_step, until, self.time_step_size):
             self.usgs_model.run_usgs(self)

@@ -1,6 +1,6 @@
 import dataretrieval.nwis as nwis
 import pandas as pd
-
+pd.options.mode.chained_assignment = None
 class USGS():
     def __init__(self):
         super(USGS, self).__init__()
@@ -24,8 +24,17 @@ class USGS():
         site_avg.reset_index(inplace=True) #reset index again to have datetime 
         site_avgflow = site_avg.iloc[:,[0,2]] #locates every row by the columns we want (date and flow)
         site_avgflow.columns = ['Date', 'Flow']
-        print(site_avgflow)
+        #check validity of extracted data
+        site_avgflow.loc[site_avgflow['Flow'] >= 0, 'validity']=1 # if value positive, consider
+        site_avgflow.loc[site_avgflow['Flow'] <0,'validity']=0 # if less than zero, not realistic
+        site_avgflow.loc[site_avgflow['Flow'].isnull()==True, 'validity']=0 # if NaN not availible
+        #Output results to csv file
+        site_avgflow.to_csv('USGS_'+str(sites)+'_obs_streamflow.csv', index=False)
+        #site_avgflow.to_csv('USGS_streamflow_for_site_.csv', index=False)
+        # to check if the code runs on the framework
+        print(site_avgflow) 
         print("USGS station ID",sites)
+
         return
         
 
