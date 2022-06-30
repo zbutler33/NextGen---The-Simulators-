@@ -89,7 +89,8 @@ class BMI_USGS():
         sites = self.sites
         service  =self.service      
         start  =self.start          
-        end    =self.end      
+        end    =self.end 
+        
         
         # ________________________________________________
 
@@ -109,9 +110,9 @@ class BMI_USGS():
     # BMI: Model Control Function
     def update(self):
         self.usgs_model.run_usgs(self)
-        #print(self.sites)
-        #self.scale_output()
-        
+        #self._values["sites"]=self.sites
+       #print(self.flow,'-',self.validity)
+        self.scale_output()
 
     # __________________________________________________________________________________________________________
     # __________________________________________________________________________________________________________
@@ -153,7 +154,15 @@ class BMI_USGS():
             print("\n USGS observed flow for station ",self.sites,"is retrieved!")
             print()
         return
-    
+    def scale_output(self):
+
+        self._values['site'] = self.sites
+        self._values['start'] = self.start
+        self._values['service'] = self.service
+        self._values['end'] = self.end
+        self._values['Flow'] = self.flow
+        self._values['validity'] = self.validity
+        #self._values['site'] = self.total_discharge
     #________________________________________________________
     def config_from_json(self):
         with open(self.cfg_file) as data_file:
