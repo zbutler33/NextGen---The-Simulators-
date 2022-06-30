@@ -109,7 +109,6 @@ class BMI_USGS():
     # BMI: Model Control Function
     def update(self):
         self.usgs_model.run_usgs(self)
-        self.
         #print(self.sites)
         #self.scale_output()
         
