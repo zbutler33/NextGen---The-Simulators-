@@ -181,7 +181,7 @@ class CFE():
         for i in range(cfe_state.num_giuh_ordinates): 
 
             #cfe_state.runoff_queue_m_per_timestep[i] += cfe_state.giuh_ordinates[i] * cfe_state.surface_runoff_depth_m
-            cfe_state.runoff_queue_m_per_timestep[i] += cfe_state.giuh_ordinates[i] * (cfe_state.surface_runoff_depth_m*1.5) #multiply by 90% for state var change
+            cfe_state.runoff_queue_m_per_timestep[i] += cfe_state.giuh_ordinates[i] * (cfe_state.surface_runoff_depth_m*0.75) #multiply by ##% for state var change
             # smaller percent, makes flow lower
 
             
