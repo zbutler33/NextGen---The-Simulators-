@@ -177,11 +177,27 @@ class CFE():
         """
 
 #        cfe_state.runoff_queue_m_per_timestep[-1] = 0
-        
+        #-----------------------------------------------------
+        # Change this state variable here
         for i in range(cfe_state.num_giuh_ordinates): 
 
             #cfe_state.runoff_queue_m_per_timestep[i] += cfe_state.giuh_ordinates[i] * cfe_state.surface_runoff_depth_m
-            cfe_state.runoff_queue_m_per_timestep[i] += cfe_state.giuh_ordinates[i] * (cfe_state.surface_runoff_depth_m*0.75) #multiply by ##% for state var change
+           """
+
+           This will edit the runoff to see how changes in it will affect streamflow
+           To start, we will create a list of %'s to multiple the surface_runoff_depth_m by
+           - Keep track of changes in streamflow to see how this variable will affect
+
+           """
+        #cfe_runoff_queue = []
+        percent_list = np.arange(0.5,1.5,0.1)
+        for t in percent_list: 
+
+            #cfe_state.runoff_queue_m_per_timestep[i] += cfe_state.giuh_ordinates[i] * (cfe_state.surface_runoff_depth_m*0.75) #multiply by ##% for state var change
+            cfe_state.runoff_queue_m_per_timestep[i] += cfe_state.giuh_ordinates[i] * (cfe_state.surface_runoff_depth_m*t)
+            print(cfe_state.runoff_queue_m_per_timestep[i])
+            #cfe_runoff_queue = cfe_state.runoff_queue_m_per_timestep[percent_list]
+
             # smaller percent, makes flow lower
 
             
