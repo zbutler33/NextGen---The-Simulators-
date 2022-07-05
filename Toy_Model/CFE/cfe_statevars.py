@@ -24,10 +24,22 @@ class CFE():
         # timestep_rainfall_input_m = f(timestep_rainfall_input_m, potential_et_m_per_timestep)
         self.et_from_rainfall(cfe_state)
         
-        # ________________________________________________        
+        # ________________________________________________   
+        #-----------------------------------------------------
+        # Chane the state variable, soil_reservoir_storage_deficit_m
+        """
+
+        This will edit the soil storage to see how changes in it will affect streamflow
+        To start, we will create a list of %'s to multiple the soil_reservoir_storage_deficit_m by
+        - Keep track of changes in streamflow to see how this variable will affect
+        - Smaller percent change (more soil storage), makes the flow lower ?? 
+        - Need to develop logic (if) statement based on how final DA runoff is 
+
+        """     
+        
         cfe_state.soil_reservoir_storage_deficit_m = (cfe_state.soil_params['smcmax'] * \
                                                  cfe_state.soil_params['D'] - \
-                                                 cfe_state.soil_reservoir['storage_m'])
+                                                 cfe_state.soil_reservoir['storage_m']) * 0.1 #cfe_state.time_state_var_change
         
         # ________________________________________________
         # SUBROUTINE
@@ -181,30 +193,21 @@ class CFE():
 
 #        cfe_state.runoff_queue_m_per_timestep[-1] = 0
         #-----------------------------------------------------
+        # Chane the state variable, surface_runoff_depth_m
         """
 
         This will edit the runoff to see how changes in it will affect streamflow
         To start, we will create a list of %'s to multiple the surface_runoff_depth_m by
         - Keep track of changes in streamflow to see how this variable will affect
+        - Smaller percent change (less runoff), makes the flow lower
+        - Need to develop logic (if) statement based on how final DA runoff is 
 
         """
-        # Change this state variable here
-        #state_var_change = np.arange(0.5, 1.5, 0.1)
         for i in range(cfe_state.num_giuh_ordinates):
-
-        #cfe_state.runoff_queue_m_per_timestep[i] += cfe_state.giuh_ordinates[i] * cfe_state.surface_runoff_depth_m
-
-        # #cfe_runoff_queue = []
-        # for t in percent_list:
 
             #cfe_state.runoff_queue_m_per_timestep[i] += cfe_state.giuh_ordinates[i] * (cfe_state.surface_runoff_depth_m*0.75) #multiply by ##% for state var change
             cfe_state.runoff_queue_m_per_timestep[i] += cfe_state.giuh_ordinates[i] * (cfe_state.surface_runoff_depth_m * cfe_state.time_state_var_change)
-            # print(cfe_state.runoff_queue_m_per_timestep[i])
-            #cfe_runoff_queue = cfe_state.runoff_queue_m_per_timestep[percent_list]
 
-            # smaller percent, makes flow lower
-
-            
         cfe_state.flux_giuh_runoff_m = cfe_state.runoff_queue_m_per_timestep[0]
         
         # __________________________________________________________________
