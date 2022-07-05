@@ -12,6 +12,9 @@ class CFE():
         
         # ________________________________________________
         cfe_state.volin += cfe_state.timestep_rainfall_input_m
+
+        #------------------------------------------------
+        cfe_state.change = cfe_state.time_state_var_change
         
         # ________________________________________________
         cfe_state.potential_et_m_per_timestep = cfe_state.potential_et_m_per_s * cfe_state.time_step_size
@@ -178,24 +181,25 @@ class CFE():
 
 #        cfe_state.runoff_queue_m_per_timestep[-1] = 0
         #-----------------------------------------------------
+        """
+
+        This will edit the runoff to see how changes in it will affect streamflow
+        To start, we will create a list of %'s to multiple the surface_runoff_depth_m by
+        - Keep track of changes in streamflow to see how this variable will affect
+
+        """
         # Change this state variable here
-        for i in range(cfe_state.num_giuh_ordinates): 
+        #state_var_change = np.arange(0.5, 1.5, 0.1)
+        for i in range(cfe_state.num_giuh_ordinates):
 
-            #cfe_state.runoff_queue_m_per_timestep[i] += cfe_state.giuh_ordinates[i] * cfe_state.surface_runoff_depth_m
-           """
+        #cfe_state.runoff_queue_m_per_timestep[i] += cfe_state.giuh_ordinates[i] * cfe_state.surface_runoff_depth_m
 
-           This will edit the runoff to see how changes in it will affect streamflow
-           To start, we will create a list of %'s to multiple the surface_runoff_depth_m by
-           - Keep track of changes in streamflow to see how this variable will affect
-
-           """
-        #cfe_runoff_queue = []
-        percent_list = np.arange(0.5,1.5,0.1)
-        for t in percent_list: 
+        # #cfe_runoff_queue = []
+        # for t in percent_list:
 
             #cfe_state.runoff_queue_m_per_timestep[i] += cfe_state.giuh_ordinates[i] * (cfe_state.surface_runoff_depth_m*0.75) #multiply by ##% for state var change
-            cfe_state.runoff_queue_m_per_timestep[i] += cfe_state.giuh_ordinates[i] * (cfe_state.surface_runoff_depth_m*t)
-            print(cfe_state.runoff_queue_m_per_timestep[i])
+            cfe_state.runoff_queue_m_per_timestep[i] += cfe_state.giuh_ordinates[i] * (cfe_state.surface_runoff_depth_m * cfe_state.time_state_var_change)
+            # print(cfe_state.runoff_queue_m_per_timestep[i])
             #cfe_runoff_queue = cfe_state.runoff_queue_m_per_timestep[percent_list]
 
             # smaller percent, makes flow lower
