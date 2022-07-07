@@ -39,7 +39,9 @@ class CFE():
         
         cfe_state.soil_reservoir_storage_deficit_m = (cfe_state.soil_params['smcmax'] * \
                                                  cfe_state.soil_params['D'] - \
-                                                 cfe_state.soil_reservoir['storage_m']) * 0.1 #cfe_state.time_state_var_change
+                                                 cfe_state.soil_reservoir['storage_m']) * cfe_state.time_state_var_change
+                                                 # issue if this negative, then it should be 0. print warning or something
+        # if statement  
         
         # ________________________________________________
         # SUBROUTINE
@@ -53,7 +55,7 @@ class CFE():
         # ________________________________________________
         if cfe_state.soil_reservoir_storage_deficit_m < cfe_state.infiltration_depth_m:
             # put won't fit back into runoff
-            cfe_state.surface_runoff_depth_m += (cfe_state.infiltration_depth_m - soil_reservoir_storage_deficit_m)
+            cfe_state.surface_runoff_depth_m += (cfe_state.infiltration_depth_m - cfe_state.soil_reservoir_storage_deficit_m)
             cfe_state.infiltration_depth_m = cfe_state.soil_reservoir_storage_deficit_m
             cfe_state.soil_reservoir['storage_m'] = cfe_state.soil_reservoir['storage_max_m']
 
