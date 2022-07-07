@@ -40,11 +40,16 @@ class CFE():
         cfe_state.soil_reservoir_storage_deficit_m = (cfe_state.soil_params['smcmax'] * \
                                                  cfe_state.soil_params['D'] - \
                                                  cfe_state.soil_reservoir['storage_m']) * cfe_state.time_state_var_change
+                                        
                                                  
         #_________________________________________________
         # soil reservoir storage cannot be negative 
         if cfe_state.soil_reservoir_storage_deficit_m < 0:
             cfe_state.soil_reservoir_storage_deficit_m = 0
+
+        #print(cfe_state.soil_reservoir_storage_deficit_m)
+
+        
         
         # ________________________________________________
         # SUBROUTINE
@@ -61,6 +66,7 @@ class CFE():
             cfe_state.surface_runoff_depth_m += (cfe_state.infiltration_depth_m - cfe_state.soil_reservoir_storage_deficit_m)
             cfe_state.infiltration_depth_m = cfe_state.soil_reservoir_storage_deficit_m
             cfe_state.soil_reservoir['storage_m'] = cfe_state.soil_reservoir['storage_max_m']
+        #print(cfe_state.infiltration_depth_m)
 
         # ________________________________________________
         cfe_state.vol_sch_runoff += cfe_state.surface_runoff_depth_m
