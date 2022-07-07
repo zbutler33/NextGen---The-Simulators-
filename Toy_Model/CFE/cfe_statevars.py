@@ -40,8 +40,11 @@ class CFE():
         cfe_state.soil_reservoir_storage_deficit_m = (cfe_state.soil_params['smcmax'] * \
                                                  cfe_state.soil_params['D'] - \
                                                  cfe_state.soil_reservoir['storage_m']) * cfe_state.time_state_var_change
-                                                 # issue if this negative, then it should be 0. print warning or something
-        # if statement  
+                                                 
+        #_________________________________________________
+        # soil reservoir storage cannot be negative 
+        if cfe_state.soil_reservoir_storage_deficit_m < 0:
+            cfe_state.soil_reservoir_storage_deficit_m = 0
         
         # ________________________________________________
         # SUBROUTINE
@@ -207,8 +210,8 @@ class CFE():
         """
         for i in range(cfe_state.num_giuh_ordinates):
 
-            #cfe_state.runoff_queue_m_per_timestep[i] += cfe_state.giuh_ordinates[i] * (cfe_state.surface_runoff_depth_m*0.75) #multiply by ##% for state var change
-            cfe_state.runoff_queue_m_per_timestep[i] += cfe_state.giuh_ordinates[i] * (cfe_state.surface_runoff_depth_m * cfe_state.time_state_var_change)
+            cfe_state.runoff_queue_m_per_timestep[i] += cfe_state.giuh_ordinates[i] * (cfe_state.surface_runoff_depth_m) #multiply by ##% for state var change
+            #cfe_state.runoff_queue_m_per_timestep[i] += cfe_state.giuh_ordinates[i] * (cfe_state.surface_runoff_depth_m * cfe_state.time_state_var_change)
             # percentage is the change in total. 12 USGS, 10 CFE, DA 11. 1 cfs change (3600/2) = 1800 / (10*3600) =  0.05% so 1.05% increase
             # divide by 2 becuase assuming linear change in total mass runoff discrepency between time steps
 
