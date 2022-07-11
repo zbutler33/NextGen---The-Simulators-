@@ -39,7 +39,8 @@ class CFE():
         
         cfe_state.soil_reservoir_storage_deficit_m = (cfe_state.soil_params['smcmax'] * \
                                                  cfe_state.soil_params['D'] - \
-                                                 cfe_state.soil_reservoir['storage_m']) * cfe_state.time_state_var_change
+                                                 cfe_state.soil_reservoir['storage_m']) \
+                                                * cfe_state.time_state_var_change
                                         
                                                  
         #_________________________________________________
