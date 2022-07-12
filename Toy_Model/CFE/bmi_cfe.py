@@ -38,7 +38,7 @@ class BMI_CFE():
         #---------------------------------------------
         self._input_var_names = [
             'atmosphere_water__time_integral_of_precipitation_mass_flux',
-            'water_potential_evaporation_flux','state_var_change']
+            'water_potential_evaporation_flux','state_var_change','state_var_change_v2']
     
         #---------------------------------------------
         # Output variable names (CSDMS standard names)
@@ -63,6 +63,7 @@ class BMI_CFE():
                                 'atmosphere_water__time_integral_of_precipitation_mass_flux':['timestep_rainfall_input_m','kg m-2'],
                                 'water_potential_evaporation_flux':['potential_et_m_per_s','m s-1'],
                                 'state_var_change':['time_state_var_change','%'],
+                                'state_var_change_v2':['time_state_var_change_v2','%'],
                                 'DIRECT_RUNOFF':['surface_runoff_depth_m','m'],
                                 'GIUH_RUNOFF':['flux_giuh_runoff_m','m'],
                                 'NASH_LATERAL_RUNOFF':['flux_nash_lateral_runoff_m','m'],
@@ -127,6 +128,7 @@ class BMI_CFE():
         self.timestep_rainfall_input_m = 0
         self.potential_et_m_per_s      = 0
         self.time_state_var_change = 0
+        self.time_state_var_change_v2 = 0
 
         
         # ________________________________________________

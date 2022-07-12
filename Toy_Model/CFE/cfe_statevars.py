@@ -14,7 +14,7 @@ class CFE():
         cfe_state.volin += cfe_state.timestep_rainfall_input_m
 
         #------------------------------------------------
-        cfe_state.change = cfe_state.time_state_var_change
+        #cfe_state.change = cfe_state.time_state_var_change
         
         # ________________________________________________
         cfe_state.potential_et_m_per_timestep = cfe_state.potential_et_m_per_s * cfe_state.time_step_size
@@ -217,8 +217,8 @@ class CFE():
         """
         for i in range(cfe_state.num_giuh_ordinates):
 
-            cfe_state.runoff_queue_m_per_timestep[i] += cfe_state.giuh_ordinates[i] * (cfe_state.surface_runoff_depth_m) #multiply by ##% for state var change
-            #cfe_state.runoff_queue_m_per_timestep[i] += cfe_state.giuh_ordinates[i] * (cfe_state.surface_runoff_depth_m * cfe_state.time_state_var_change)
+            #cfe_state.runoff_queue_m_per_timestep[i] += cfe_state.giuh_ordinates[i] * (cfe_state.surface_runoff_depth_m) #multiply by ##% for state var change
+            cfe_state.runoff_queue_m_per_timestep[i] += cfe_state.giuh_ordinates[i] * (cfe_state.surface_runoff_depth_m * cfe_state.time_state_var_change_v2)
             # percentage is the change in total. 12 USGS, 10 CFE, DA 11. 1 cfs change (3600/2) = 1800 / (10*3600) =  0.05% so 1.05% increase
             # divide by 2 becuase assuming linear change in total mass runoff discrepency between time steps
 
