@@ -50,6 +50,7 @@ class BMI_USGS():
     #__________________________________________________________________
     #__________________________________________________________________
     # BMI: Model Control Function
+    # 
     def initialize(self, cfg_file=None, current_time_step=0):
         #------------------------------------------------------------
         # this is the bmi configuration file
@@ -103,15 +104,23 @@ class BMI_USGS():
         # ________________________________________________________________ #
         # ________________________________________________________________ #
         ####################################################################
+
+        self.usgs_model.run_usgs(self) #running usgs model here. Makes output vars available
+
+        #keep track of time index. starting a 0. 
+        self.time_index = 0
         
     
     # __________________________________________________________________________________________________________
     # __________________________________________________________________________________________________________
     # BMI: Model Control Function
     def update(self):
-        self.usgs_model.run_usgs(self)
+        #self.flow =  self.usgs_model.flow[self.time_index]
+        #self.validity =  self.usgs_model.validity[self.time_index]
+        self.time_index += 1 #adding time steps
+        #self.usgs_model.run_usgs(self)
         #self._values["sites"]=self.sites
-       #print(self.flow,'-',self.validity)
+        #print(self.flow,'-',self.validity)
         self.scale_output()
 
     # __________________________________________________________________________________________________________
