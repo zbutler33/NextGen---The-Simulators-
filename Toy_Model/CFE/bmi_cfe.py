@@ -565,7 +565,7 @@ class BMI_CFE():
             Data type.
         """
         # JG Edit
-        return self.get_value_ptr(long_var_name)  #.dtype
+        return self.get_value_ptr(long_var_name).dtype
     
     #------------------------------------------------------------ 
     def get_var_grid(self, name):
