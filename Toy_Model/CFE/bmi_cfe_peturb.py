@@ -5,7 +5,9 @@ import pandas as pd
 import sys
 import json
 import matplotlib.pyplot as plt
-import cfe
+#import cfe
+import cfe_statevars
+
 
 class BMI_CFE():
     def __init__(self):
@@ -38,7 +40,7 @@ class BMI_CFE():
         #---------------------------------------------
         self._input_var_names = [
             'atmosphere_water__time_integral_of_precipitation_mass_flux',
-            'water_potential_evaporation_flux', 'state_var_change_v2']
+            'water_potential_evaporation_flux','state_var_change_soil','state_var_change_runoff']
     
         #---------------------------------------------
         # Output variable names (CSDMS standard names)
@@ -62,7 +64,8 @@ class BMI_CFE():
                                 #--------------   Dynamic inputs --------------------------------
                                 'atmosphere_water__time_integral_of_precipitation_mass_flux':['timestep_rainfall_input_m','kg m-2'],
                                 'water_potential_evaporation_flux':['potential_et_m_per_s','m s-1'],
-                                'state_var_change_v2':['time_state_var_change_v2','%'],
+                                'state_var_change_soil':['time_state_var_change_soil','%'],
+                                'state_var_change_runoff':['time_state_var_change_runoff','%'],
                                 'DIRECT_RUNOFF':['surface_runoff_depth_m','m'],
                                 'GIUH_RUNOFF':['flux_giuh_runoff_m','m'],
                                 'NASH_LATERAL_RUNOFF':['flux_nash_lateral_runoff_m','m'],
@@ -127,7 +130,8 @@ class BMI_CFE():
         # Inputs
         self.timestep_rainfall_input_m = 0
         self.potential_et_m_per_s      = 0
-        self.time_state_var_change_v2 = 0
+        self.time_state_var_change_soil = 0
+        self.time_state_var_change_runoff = 0
         
         # ________________________________________________
         # calculated flux variables
