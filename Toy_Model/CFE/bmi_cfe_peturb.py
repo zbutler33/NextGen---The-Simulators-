@@ -5,8 +5,8 @@ import pandas as pd
 import sys
 import json
 import matplotlib.pyplot as plt
-#import cfe
-import cfe_statevars
+import cfe
+#import cfe_statevars #line 241
 
 
 class BMI_CFE():
@@ -237,8 +237,8 @@ class BMI_CFE():
         # ________________________________________________________________ #
         # ________________________________________________________________ #
         # CREATE AN INSTANCE OF THE CONCEPTUAL FUNCTIONAL EQUIVALENT MODEL #
-        #self.cfe_model = cfe.CFE()
-        self.cfe_model = cfe_statevars.CFE()
+        self.cfe_model = cfe.CFE()
+        #self.cfe_model = cfe_statevars.CFE()
         # ________________________________________________________________ #
         # ________________________________________________________________ #
         ####################################################################
