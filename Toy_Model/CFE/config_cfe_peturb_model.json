@@ -1,0 +1,31 @@
+{
+    "forcing_file":"./Forcing/forcing_data.csv",
+    "NGEN_catchments":"cat-36549,cat-36550,cat-36552,cat-36698,cat-36699",
+    "catchment_area_km2":84.21526,
+    "peturbation_factor": 0.75,
+    "number_of_ensemble": 7,
+    "alpha_fc":0.33,
+    "soil_params":{
+                   "depth":2.0,
+                   "bb":16.0,
+                   "mult":1000.0,
+                   "satdk":0.00000338,
+                   "satpsi":0.355,
+                   "slop":1.0,
+                   "smcmax":0.439,
+                   "wltsmc":0.066,
+                   "D":2.0
+                   },
+    "max_gw_storage":0.01,
+    "Cgw":0.000018,
+    "expon":6.0,
+    "gw_storage":0.05,
+    "soil_storage":0.05,
+    "K_lf":0.01,
+    "K_nash":0.03,
+    "nash_storage":[0.0,0.0],
+    "giuh_ordinates":[0.35,0.37,0.28],
+    "stand_alone":1,
+    "unit_test":1,
+    "compare_results_file":"test_compare.csv"
+}
