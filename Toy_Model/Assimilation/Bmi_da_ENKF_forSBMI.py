@@ -37,14 +37,14 @@ class EnKF_wrap():
         #---------------------------------------------
         # Output variable names (CSDMS standard names)
         #---------------------------------------------
-        self._output_var_names = ['state transition']
+        self._output_var_names = ['state_transition']
         
         #------------------------------------------------------
         # Create a Python dictionary that maps CSDMS Standard Names to the model's internal variable names.
 
         #------------------------------------------------------
         self._var_name_units_map = {
-                                'state transition':['function','NA'],
+                                'state_transition':['function','NA'],
                                 'x':['mean','cfs'],'z':['obs','cfs'],
                                 'P':['covariance','NA'],'dim_z':['dimension','NA'],'dim_x':['dimension','NA'],
                                 'dt':['time_step','hour'],'N':['Number_of_sample','Day'],'hx':['function_h','NA'], 'fx':['funciton_f','NA']
