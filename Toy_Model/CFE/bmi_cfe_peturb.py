@@ -5,8 +5,8 @@ import pandas as pd
 import sys
 import json
 import matplotlib.pyplot as plt
-import cfe
-#import cfe_statevars #line 241
+#import cfe
+import cfe_statevars #line 241
 
 
 class BMI_CFE():
@@ -130,8 +130,8 @@ class BMI_CFE():
         # Inputs
         self.timestep_rainfall_input_m = 0
         self.potential_et_m_per_s      = 0
-        self.time_state_var_change_soil = 0
-        self.time_state_var_change_runoff = 0
+        self.time_state_var_change_soil = 1 #Initial value of 1 to start with no change in state variable (100%)
+        self.time_state_var_change_runoff = 1
         
         # ________________________________________________
         # calculated flux variables
@@ -237,8 +237,8 @@ class BMI_CFE():
         # ________________________________________________________________ #
         # ________________________________________________________________ #
         # CREATE AN INSTANCE OF THE CONCEPTUAL FUNCTIONAL EQUIVALENT MODEL #
-        self.cfe_model = cfe.CFE()
-        #self.cfe_model = cfe_statevars.CFE()
+        #self.cfe_model = cfe.CFE()
+        self.cfe_model = cfe_statevars.CFE()
         # ________________________________________________________________ #
         # ________________________________________________________________ #
         ####################################################################

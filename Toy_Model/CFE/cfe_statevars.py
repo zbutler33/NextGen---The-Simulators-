@@ -45,6 +45,10 @@ class CFE():
         if cfe_state.soil_reservoir_storage_deficit_m < 0:
             cfe_state.soil_reservoir_storage_deficit_m = 0
 
+        # soil reservoir storage cannot go above certain limit
+        if cfe_state.soil_reservoir_storage_deficit_m == (cfe_state.soil_reservoir_storage_deficit_m * 2):
+            cfe_state.soil_reservoir_storage_deficit_m = (cfe_state.time_state_var_change_soil *  cfe_state.soil_reservoir_storage_deficit_m)
+
         #print(cfe_state.soil_reservoir_storage_deficit_m)
 
         
