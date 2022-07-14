@@ -22,7 +22,58 @@ import numpy as np
 from numpy import array, zeros, eye, dot
 from numpy.random import multivariate_normal
 from filterpy.common import pretty_str, outer_product_sum
+import pandas as pd
+pd.options.mode.chained_assignment = None
 
+class enkf():
+    def __init__(self):
+        super(enkf, self).__init__()
+    def run_enkf(self,e):
+        x=e.x
+        P=e.P
+        z=e.z
+        dim_z=e.dim_z
+        dim_x=e.dim_x
+        dt=e.dt
+        N=e.N
+        F=e.F
+        def hx(x):
+            return np.array(x[0])
+        # state transition matrix function dot product of x and the % of change
+        def fx(x, dt):
+            return np.dot(F, x)
+        #start update and predict using EnKF
+
+        assimilaiton = EnsembleKalmanFilter(x=e.x, P=e.P, dim_z=e.dim_z,dt=e.dt, N=e.N,hx=hx, fx=fx)
+        start=assimilaiton.start(x,P)
+        predic=assimilaiton.predict()
+        # print(predic.x_prior)
+        update=assimilaiton.update_with_obs(z)
+        # print('z',z)
+        e.x_post=update
+        e.x_prior=predic
+        e.res=assimilaiton.x
+        
+        # change based on lookup
+        if e.x==0:
+            e.factor=1
+        else:
+            e.factor=e.res//e.x
+            # if value error
+        # print("x_post",update)
+        # print("x",e.x)
+        # updated.append[update]
+        
+        # print("x_prior",predic)
+        # print(predicted)
+
+        # Enkf=assimilation.x[0]
+        # print(x[0])
+        # print(assimilaiton.x_post)
+        # factor=e.prioir//e.prioir
+        # print(factor)
+        # e.post=
+        return       
 
 class EnsembleKalmanFilter():
     """
@@ -195,7 +246,7 @@ class EnsembleKalmanFilter():
             self.z = array([[None]*self.dim_z]).T
             self.x_post = self.x.copy()
             self.P_post = self.P.copy()
-            return
+            return print("check123")
 
         if R is None:
             R = self.R
@@ -232,7 +283,8 @@ class EnsembleKalmanFilter():
         self.z = deepcopy(z)
         self.x_post = self.x.copy()
         self.P_post = self.P.copy()
-        print(self.x_post)
+        # print("predicted",self.x_post)
+        # return self.x.copy()
     def predict(self):
         """ Predict next position. """
 
@@ -249,9 +301,10 @@ class EnsembleKalmanFilter():
         # save prior
         self.x_prior = np.copy(self.x)
         self.P_prior = np.copy(self.P)
-        # return transition matrix to update the state variable with
-        print(self.x[0])
         
+        # return transition matrix to update the state variable with
+        # 
+        # print("prior",self.x)
     def __repr__(self):
         return '\n'.join([
             'EnsembleKalmanFilter object',
@@ -271,6 +324,3 @@ class EnsembleKalmanFilter():
             pretty_str('fx', self.fx)
             ])
 ####################################################################
-        
-
-

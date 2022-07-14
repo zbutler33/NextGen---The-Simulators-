@@ -8,6 +8,7 @@ import EnKF
 
 class EnKF_wrap():
     def __init__(self):
+        # super(EnKF_wrap, self).__init__()
         # from code
         #end###############
         """Create a Bmi EnKF data retrieval ready for initialization."""
@@ -24,7 +25,7 @@ class EnKF_wrap():
         self._att_map = {
             'model_name':         'ENKF BMI',
             'version':            '1.0',
-            'author_name':        'Fitsume and Kenneth',
+            'author_name':        '',
             'grid_type':          'scalar',
             'time_units':         '1 hr' }
     
@@ -32,54 +33,26 @@ class EnKF_wrap():
         # Input variable names (CSDMS standard names)
         #---------------------------------------------
         self._input_var_names = [
-            'x', 'P','z','dim_x','dim_z', 'dt','N', 'hx', 'fx']
+            'x', 'P','z','F', 'dt','N','look_up_table']
     
         #---------------------------------------------
         # Output variable names (CSDMS standard names)
         #---------------------------------------------
-        self._output_var_names = ['state_transition']
+        self._output_var_names = ['factor','x_prior','x_post','enkf']
         
         #------------------------------------------------------
         # Create a Python dictionary that maps CSDMS Standard Names to the model's internal variable names.
 
         #------------------------------------------------------
-        self._var_name_units_map = {
-                                'state_transition':['function','NA'],
-                                'x':['mean','cfs'],'z':['obs','cfs'],
-                                'P':['covariance','NA'],'dim_z':['dimension','NA'],'dim_x':['dimension','NA'],
-                                'dt':['time_step','hour'],'N':['Number_of_sample','Day'],'hx':['function_h','NA'], 'fx':['funciton_f','NA']
+        self._var_name_units_map = {'F':['percent','%'],'enkf':['enkf_flow','cfs'],
+                                'x_prior':['Qbefore_enkf_update','cfs'],'x_post':['Qafter_enkf_update','cfs'],
+                                'x':['mean','cfs'],'z':['obs','cfs'],'factor':['percent','%'],
+                                'P':['covariance','NA'],'dt':['time_step','hour'],'N':['Number_of_ensembles','Day'],'hx':['observation_function','NA'], 'fx':['state_transition_funciton','NA']
                           }
 
     #__________________________________________________________________
     #__________________________________________________________________
     # BMI: Model Control Function
-#         if dim_z <= 0:
-#             raise ValueError('dim_z must be greater than zero')
-
-#         if N <= 0:
-#             raise ValueError('N must be greater than zero')
-
-#         dim_x = len(x)
-#         self.dim_x = dim_x
-#         self.dim_z = dim_z
-#         self.dt = dt
-#         self.N = N
-#         self.hx = hx
-#         self.fx = fx
-#         self.K = zeros((dim_x, dim_z))
-#         self.z = array([[None] * self.dim_z]).T
-#         self.S = zeros((dim_z, dim_z))   # system uncertainty
-#         self.SI = zeros((dim_z, dim_z))  # inverse system uncertainty
-
-#         self.initialize(x, P)
-#         self.Q = eye(dim_x)       # process uncertainty
-#         self.R = eye(dim_z)       # state uncertainty
-#         self.inv = np.linalg.inv
-
-#         # used to create error terms centered at 0 mean for
-#         # state and measurement
-#         self._mean = zeros(dim_x)
-#         self._mean_z = zeros(dim_z)
 
     def initialize(self, cfg_file=None, current_time_step=0):
     #def initialize(self, x, P):
@@ -108,7 +81,7 @@ class EnKF_wrap():
         # ________________________________________________________ #
         # GET VALUES FROM CONFIGURATION FILE.                      #
         self.config_from_json()   
-        print(self.N)
+        # print(self.N)
         
         # ________________________________________________
         # Time control if incase update until may be used
@@ -120,43 +93,26 @@ class EnKF_wrap():
             # ________________________________________________
         # Initial values for initialising the EnKF BMI
         
-        # x=np.zeros(1)
-        # dim_x=len(np.zeros(1))
-        # P=np.eye(2) * 100
-        # z=np.zeros(1)
-        # dim_z=1
-        # dt=1 
-        # N=1
-        # hx=np.array([x[0]])
-        # F = np.array([[1.]])
-        # fx= np.dot(F,x)
-        #start  =self.start          
-        #end    =self.end 
-        self.x= np.array([0.])
         
-        self.dim_x=len(self.x)
-        self.P=np.eye(1) * 100
-        self.z=np.array([2.])
+        
+        ########
+        # x_post=self.x_post
+        self.x=self.x        
+        self.P=self.P
+        self.z=self.z
+        self.F=self.F
         self.dim_z=len(self.z)
         self.N=int(self.N)
-        #self.hx=np.array([int(self.hx)])
-        # self.hx=hx(self.x)
-        self.F = np.array([[self.F]])
-        # self.fx=self.F* self.x
-        #self.fx=np.array([int(self.fx)])
-        self.dt=int(self.dt)
-        print(self.dim_z)
-        x=self.x
+        self.dim_x=len(self.x)
         dt=self.dt
-# measurnment extraction
-        def hx(x):
-            return np.array(x[0])
-# state transition matrix function dot product of x and the % of change
-        def fx(x, dt):
-            return np.dot(F, x)
-    # CREATE AN INSTANCE OF THE SIMPLE USGS MODEL #
-        self.EnKF_model = EnKF.EnsembleKalmanFilter(self.x, self.P, self.dim_z,self.dt, self.N,hx, fx)
-        
+        self.N=int(self.N)
+        F=self.F
+        # print("% chnage of state var",self.L[1][1])
+        # x=self.x
+        # dt=self.dt
+
+    # CREATE AN INSTANCE OF THE EnKF MODEL #
+        self.enkf_model = EnKF.enkf()
         
         # ________________________________________________
         """
@@ -172,79 +128,116 @@ class EnKF_wrap():
         """
 
     def update(self):
-        #start update and predict using EnKF
-        self.EnKF_model.start(self.x, self.P)
-        self.EnKF_model.predict
-        self.EnKF_model.update_with_obs(self.z)
-        #
-        self.scale_output()
+        self.x= self._values['x'] 
+        self.P=np.eye(1)*self._values['P']
+        self.dt=self._values['dt'] 
+        self.F=self._values['F']
+        self.z=self._values['z']
+        self.enkf_model.run_enkf(self)
+
+        
+        self._values['x_post'] = self.x_post
+        self._values['x_prior'] = self.x
+        self._values['enkf'] = self.res
+        self._values['factor'] = self.factor      
+        
+        # to activate once update is functional
+#         L= pd.DataFrame(self.L, columns=["state_Var","streamflow"])
+
+#         change = L.loc[L["streamflow"] == self.factor] # finding similar str. flow change [state_Var %,streamflow%]
+
+#         multiplier= int(change["state_Var"])
+#         print("mult",multiplier)
+#         print("change",change)
+    
+        
 
             #BMI: Model Control Function
 ####################################################################
-        
-    # config from file
-    def config_from_json(self):
-        with open(self.cfg_file) as data_file:
-            data_loaded = json.load(data_file)
-    # BMI: Model Control Function
-    def finalize(self,print_flow=False):
+    # BMI: Model Control Function if update until may be used (not functional)
+    def update_until(self, until):
+        for i in range(self.current_time_step, until, self.time_step_size):
+            self.enkf_model.run_enkf(self)
+            self.scale_output()
+            self.current_time += self.time_step_size
 
-        self.finalize_flow(verbose=print_flow)
-        self.reset_usgs_stations()
+            if self.current_time >= until:
+                break
+        
+        self.current_time_step = self.current_time
+        
+    # __________________________________________________________________________________________________________
+    # __________________________________________________________________________________________________________        
+
+
+    # BMI: Model Control Function
+    def finalize(self,print_output=False):
+
+        self.finalize_enkf(verbose=print_output)
+        self.reset_enkf_inputs()
 
         """Finalize model."""
-        self.usgs_model = None
-        self.usgs_state = None
+        self.enkf_model = None
+        self.enkf_state = None
     
     # ________________________________________________
-
-    #_________________________________________________________
-    def reset_EnKF(self):
+    def reset_enkf_inputs(self):
         self.x             = 0
         self.P       = 0
-        
+        self.z       = 0
+        self.F             = 0
+        self.dt       = 0
+        self.N       = 0
 
         return
-    def finalize_flow(self, verbose=True):
+    def finalize_enkf(self, verbose=True):
         
-        self.flow       = self.start
+        self.x       = self.P
         if verbose:            
-            print("\n USGS observed flow for station ",self.sites,"is retrieved!")
+            print("\n Data assimilation completed!")
             print()
-        return
+        return self.x
+#     def scale_output(self): #set output with doc string 
+
+#         #
+#         self._values['L'] = self.L
+#         # self._values['N'] = int(self.N)
+       
+#         #
+        
+#         # self._values['x_post'] = update
+#         # self._values['x_prior'] = self.enkf_model.x_post
+#         # self._values['factor']= self._values['x_post']//self._values['x_prior'] # round up factor values to int comment round it up
+        
+#         #
+#         # self._values['dim_x'] = self.dim_x
+#         #self.x, self.P, self.dim_z,self.dt, self.N,self.hx, self.fx
+        
     def scale_output(self):
 
         self._values['x'] = self.x
-        self._values['z'] = self.z
         self._values['P'] = self.P
-        # self._values['hx'] = self.hx
-        self._values['F'] = self.F
         self._values['dt'] = self.dt
+        self._values['z'] = self.z
         self._values['N'] = self.N
-        self._values['dim_z'] = self.dim_z
-        self._values['dim_x'] = self.dim_x
-        #self.x, self.P, self.dim_z,self.dt, self.N,self.hx, self.fx
-        
-        #
+        # self._values['validity'] = self.validity
+        #self._values['site'] = self.total_discharge
+    #________________________________________________________
+    
     #________________________________________________________
     def config_from_json(self):
         with open(self.cfg_file) as data_file:
             data_loaded = json.load(data_file)
-
-        # ___________________________________________________
-        # ___________________________________________________
         # MANDATORY CONFIGURATIONS
-        self.dt                 = data_loaded['dt']
-        # self.x                  =np.array([data_loaded['x']])
-        # self.P                 =np.array([data_loaded['P']])
-        # self.dim_z           =data_loaded['dim_z']
-        # self.dim_x           =data_loaded['dim_x']
-        
-        
-        self.F           =data_loaded['F']
-        self.N           =data_loaded['N']
-        # self.start            = data_loaded['start']
-        # self.end          = data_loaded['end']
+        self.dt                 = data_loaded['time_step_in_seconds']
+        self.x                  =np.array([float(data_loaded['initial_mean'])])
+        self.P                 =np.eye(1)*float(data_loaded['initial_cov'])
+        self.z                 =np.array([float(data_loaded['initial_obs'])])
+        self.F           =float(data_loaded['state_transition_multiplier_matrix'])
+        self.N           =data_loaded['Number_of_ensembles']
+        self.L           = np.array(data_loaded['look_up_table'])
+        return
+
 
     #-------------------------------------------------------------------
     # BMI: Model Information Functions
