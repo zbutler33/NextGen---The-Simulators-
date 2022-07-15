@@ -36,7 +36,7 @@ class CFE():
         
         cfe_state.soil_reservoir_storage_deficit_m = (cfe_state.soil_params['smcmax'] * \
                                                  cfe_state.soil_params['D'] - \
-                                                 cfe_state.soil_reservoir['storage_m']) * (cfe_state.time_state_var_change_soil)
+                                                 cfe_state.soil_reservoir['storage_m']) # * (cfe_state.time_state_var_change_soil)
                                                 
                                         
                                                  
@@ -46,8 +46,8 @@ class CFE():
             cfe_state.soil_reservoir_storage_deficit_m = 0
 
         # soil reservoir storage cannot go above certain limit
-        if cfe_state.soil_reservoir_storage_deficit_m == (cfe_state.soil_reservoir_storage_deficit_m * 2):
-            cfe_state.soil_reservoir_storage_deficit_m = (cfe_state.time_state_var_change_soil *  cfe_state.soil_reservoir_storage_deficit_m)
+        #if cfe_state.soil_reservoir_storage_deficit_m == (cfe_state.soil_reservoir_storage_deficit_m * 2):
+        #    cfe_state.soil_reservoir_storage_deficit_m = (cfe_state.time_state_var_change_soil *  cfe_state.soil_reservoir_storage_deficit_m)
 
         #print(cfe_state.soil_reservoir_storage_deficit_m)
 
@@ -219,7 +219,7 @@ class CFE():
         for i in range(cfe_state.num_giuh_ordinates):
 
             #cfe_state.runoff_queue_m_per_timestep[i] += cfe_state.giuh_ordinates[i] * (cfe_state.surface_runoff_depth_m) #multiply by ##% for state var change
-            cfe_state.runoff_queue_m_per_timestep[i] += cfe_state.giuh_ordinates[i] * (cfe_state.surface_runoff_depth_m * cfe_state.time_state_var_change_runoff)
+            cfe_state.runoff_queue_m_per_timestep[i] += cfe_state.giuh_ordinates[i] * (cfe_state.surface_runoff_depth_m)# * cfe_state.time_state_var_change_runoff)
             # percentage is the change in total. 12 USGS, 10 CFE, DA 11. 1 cfs change (3600/2) = 1800 / (10*3600) =  0.05% so 1.05% increase
             # divide by 2 becuase assuming linear change in total mass runoff discrepency between time steps
 

@@ -138,6 +138,7 @@ class EnKF_wrap():
         self.z=self._values['z']
         self.surface_runoff = self._values['surface_runoff_depth_m']
         self.soil_storage_deficit = self._values['soil_reservoir_storage_deficit_m']
+        self.soil_storage = self._values['soil_storage_avail_m']
         self.basin_area_km2=self.basin_area_km2
         
         self.max_soil_res_def=self._values['max_state_var_change_soilResDef']
@@ -161,14 +162,14 @@ class EnKF_wrap():
 
         # set value of soil_storage_avail_m in the framework from CFE
         # set value of soil moositure deficit
-        soil_moisture_def_diff_m =(total_volume_change_m -self._values['soil_storage_avail_m']) #leftover soil moisture
+        soil_moisture_def_diff_m =(total_volume_change_m -self.soil_storage) #leftover soil moisture
         if soil_moisture_def_diff_m >= 0:
-            self.soil_storage_deficit  = self._values['soil_storage_avail_m']
-            self._values['soil_storage_avail_m'] = 0
+            self.soil_storage_deficit  = self.soil_storage
+            self.soil_storage = 0
             total_volume_change_m = soil_moisture_def_diff_m
         elif soil_moisture_def_diff_m < 0:
             self.soil_storage_deficit = total_volume_change_m
-            self._values['soil_storage_avail_m'] += total_volume_change_m
+            self.soil_storage += total_volume_change_m
             total_volume_change_m = 0
 
         # Get ratio of change between runoff queue depth and leftover volume change
