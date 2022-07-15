@@ -57,8 +57,39 @@ class enkf():
         # change based on lookup
         if e.x==0:
             e.factor=1
+        if e.z==None:
+            e.factor=1
         else:
-            e.factor=e.res//e.x
+            e.factor=e.res//e.x 
+            
+        #
+
+        
+        
+        #
+        
+        
+        
+        
+
+        
+        
+
+        
+            
+            # factor= enkf estimation / CFE simulation==== from EnKF OK!
+            
+            # look up table (state var vs Q) ===== from CFE OK!
+            
+            # take factor (enkf) and get state var change(CFE) OK!
+            
+            # take state var change generate meand and cov of pert. (CFE perturb)
+            
+            # EnKF (new mean and cov from CFE pertu.)
+            
+            # CFE analysis
+            
+            
             # if value error
         # print("x_post",update)
         # print("x",e.x)
@@ -244,7 +275,7 @@ class EnsembleKalmanFilter():
 
         if z is None:
             self.z = array([[None]*self.dim_z]).T
-            self.x_post = self.x.copy()
+            self.x_post = self.x.copy() # this copy
             self.P_post = self.P.copy()
             return print("check123")
 

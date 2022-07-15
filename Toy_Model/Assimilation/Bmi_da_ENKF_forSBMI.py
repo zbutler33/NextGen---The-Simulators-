@@ -5,7 +5,7 @@ import sys
 import json
 import matplotlib.pyplot as plt
 import EnKF
-
+# rename as enkf_cfe_bmi
 class EnKF_wrap():
     def __init__(self):
         # super(EnKF_wrap, self).__init__()
@@ -33,21 +33,28 @@ class EnKF_wrap():
         # Input variable names (CSDMS standard names)
         #---------------------------------------------
         self._input_var_names = [
-            'x', 'P','z','F', 'dt','N','look_up_table']
+            'x', 'P','z','F', 'dt','N','basin_area_km2','max_state_var_change_soilResDef','soil_storage_avail_m','soil_reservoir_storage_deficit_m']
     
         #---------------------------------------------
         # Output variable names (CSDMS standard names)
         #---------------------------------------------
-        self._output_var_names = ['factor','x_prior','x_post','enkf']
+        self._output_var_names = ['factor','x_prior','x_post','enkf','factor_runoff','factor_soil_res_def']    
         
         #------------------------------------------------------
         # Create a Python dictionary that maps CSDMS Standard Names to the model's internal variable names.
 
         #------------------------------------------------------
-        self._var_name_units_map = {'F':['percent','%'],'enkf':['enkf_flow','cfs'],
+        self._var_name_units_map = {"basin_area_km2":['basin_area_km2','km2'],"soil_reservoir_storage_deficit_m":['soil_reservoir_storage_deficit_m','m'],
+                                    "soil_storage_avail_m":['availible_soil_storage_m','m'],
+                                    'max_state_var_change_soilResDef':['depth_of_water','m'],
+                                    'F':['percent','%'],'enkf':['enkf_flow','cfs'],
+                                    'factor_runoff':['percent','%'],'factor_soil_res_def':['percent','%'],
                                 'x_prior':['Qbefore_enkf_update','cfs'],'x_post':['Qafter_enkf_update','cfs'],
                                 'x':['mean','cfs'],'z':['obs','cfs'],'factor':['percent','%'],
-                                'P':['covariance','NA'],'dt':['time_step','hour'],'N':['Number_of_ensembles','Day'],'hx':['observation_function','NA'], 'fx':['state_transition_funciton','NA']
+                                'P':['covariance','NA'],'dt':['time_step','hour'],
+                                    'N':['Number_of_ensembles','Day'],
+                                    'hx':['observation_function','NA'], 
+                                    'fx':['state_transition_funciton','NA']
                           }
 
     #__________________________________________________________________
@@ -107,6 +114,9 @@ class EnKF_wrap():
         dt=self.dt
         self.N=int(self.N)
         F=self.F
+        max_state_var_change_soilResDef=self.max_soil_res_def
+        self.basin_area_km2=self.basin_area_km2 
+        print("initialized",self.basin_area_km2)
         # print("% chnage of state var",self.L[1][1])
         # x=self.x
         # dt=self.dt
@@ -115,17 +125,7 @@ class EnKF_wrap():
         self.enkf_model = EnKF.enkf()
         
         # ________________________________________________
-        """
-        Initializes the filter with the specified mean and
-        covariance. Only need to call this if you are using the filter
-        to filter more than one set of data; this is called by __init__
-        Parameters
-        ----------
-        x : np.array(dim_z)
-            state mean
-        P : np.array((dim_x, dim_x))
-            covariance of the state
-        """
+
 
     def update(self):
         self.x= self._values['x'] 
@@ -133,13 +133,70 @@ class EnKF_wrap():
         self.dt=self._values['dt'] 
         self.F=self._values['F']
         self.z=self._values['z']
+        self.basin_area_km2=self.basin_area_km2
+        
+        self.max_soil_res_def=self._values['max_state_var_change_soilResDef']
+        
         self.enkf_model.run_enkf(self)
 
-        
         self._values['x_post'] = self.x_post
         self._values['x_prior'] = self.x
         self._values['enkf'] = self.res
-        self._values['factor'] = self.factor      
+        self._values['factor'] = self.factor 
+        # soil_storage_avail_m
+        # print("check flot factor",self.factor)
+        #################### lookup equation ####################
+        orig =self.x
+        resulted=self.res
+        basin_area_m2 =self.basin_area_km2*1000# define config file
+
+        total_volume_change_ft3 = (orig-resulted)*3600
+        
+        total_volume_change_m3 =3.28*(10**3)*total_volume_change_ft3
+        total_volume_change_m =total_volume_change_m3/basin_area_m2
+
+        # set value of soil_storage_avail_m in the framework from CFE
+        soil_moisture_def_diff_m =max(total_volume_change_m -self._values['soil_storage_avail_m'],0) 
+        change_soil_moisture_def_m=min(soil_moisture_def_diff_m,total_volume_change_m)
+
+        # compute the % change of runoff queue
+        runoff_queue_change_depth=soil_moisture_def_diff_m
+        runoff_queue_volume= runoff_queue_change_depth*basin_area_m2
+        factor_runoff_queue=(runoff_queue_volume/3600)/self.x # change to m3/sec
+        state_var_change_runoff =0.01*(factor_runoff_queue/100)-0 
+       
+        print("soil_moisture_def_diff_m",soil_moisture_def_diff_m)
+        self._values['factor_runoff'] = state_var_change_runoff
+        self._values['factor_soil_res_def'] = soil_moisture_def_diff_m
+
+        # change_soil_moisture_def_m
+        # percent_change = change_soil_moisture_def_m/total_volume_change_m
+
+        # relate to runoff queue usig the equa.
+
+            
+            
+            
+            # Basin Area in config file Area normalised mass in meters
+            # runoff_queue in meters
+            # # ########################################
+            # state_var_change_runoff=0.01*(factor_runoff_queue)-0 # the remaining factor has to be applied here
+            # self._values['factor_runoff'] = state_var_change_runoff
+            # self._values['factor_soil_res_def'] = state_var_change_soilResDef
+        
+        # state_var_change_soilResDef= 49.89247652*(1-self.factor)-49.8818328811 # but this has a physical limit;get.value(max_soil_res_def)
+        # print(state_var_change_soilResDef,"check_this")
+        # if state_var_change_soilResDef >  self.max_soil_res_def:
+        #     factor_soil_res_def=(self.max_soil_res_def/49.89247652)+49.8818328811
+        #     factor_runoff_queue =self.factor-factor_soil_res_def
+            # total mass change analysis vs mean puturbed; volume
+            ##############################################
+            # volume = cfs*3600, meter,
+            # factor=enkf/CFE
+            
+        
+        
+        #######################
         
         # to activate once update is functional
 #         L= pd.DataFrame(self.L, columns=["state_Var","streamflow"])
@@ -185,7 +242,7 @@ class EnKF_wrap():
         self.x             = 0
         self.P       = 0
         self.z       = 0
-        self.F             = 0
+        self.F       = 0
         self.dt       = 0
         self.N       = 0
 
@@ -220,6 +277,7 @@ class EnKF_wrap():
         self._values['dt'] = self.dt
         self._values['z'] = self.z
         self._values['N'] = self.N
+        self._values['basin_area_km2']=self.basin_area_km2
         # self._values['validity'] = self.validity
         #self._values['site'] = self.total_discharge
     #________________________________________________________
@@ -236,6 +294,8 @@ class EnKF_wrap():
         self.F           =float(data_loaded['state_transition_multiplier_matrix'])
         self.N           =data_loaded['Number_of_ensembles']
         self.L           = np.array(data_loaded['look_up_table'])
+        self.max_soil_res_def =data_loaded['max_state_var_change_soilResDef']
+        self.basin_area_km2=data_loaded['basin_area_km2']
         return
 
 
