@@ -33,7 +33,8 @@ class EnKF_wrap():
         # Input variable names (CSDMS standard names)
         #---------------------------------------------
         self._input_var_names = [
-            'x', 'P','z','F', 'dt','N','basin_area_km2','max_state_var_change_soilResDef','soil_storage_avail_m','soil_reservoir_storage_deficit_m']
+            'x', 'P','z','F', 'dt','N','basin_area_km2','max_state_var_change_soilResDef',
+            'soil_storage_avail_m','soil_reservoir_storage_deficit_m','surface_runoff_depth_m']
     
         #---------------------------------------------
         # Output variable names (CSDMS standard names)
@@ -44,7 +45,9 @@ class EnKF_wrap():
         # Create a Python dictionary that maps CSDMS Standard Names to the model's internal variable names.
 
         #------------------------------------------------------
-        self._var_name_units_map = {"basin_area_km2":['basin_area_km2','km2'],"soil_reservoir_storage_deficit_m":['soil_reservoir_storage_deficit_m','m'],
+        self._var_name_units_map = {"basin_area_km2":['basin_area_km2','km2'],
+                                    "soil_reservoir_storage_deficit_m":['soil_reservoir_storage_deficit_m','m'],
+                                    "surface_runoff_depth_m": ['surface_runoff_depth_m', 'm'],
                                     "soil_storage_avail_m":['availible_soil_storage_m','m'],
                                     'max_state_var_change_soilResDef':['depth_of_water','m'],
                                     'F':['percent','%'],'enkf':['enkf_flow','cfs'],
@@ -133,6 +136,8 @@ class EnKF_wrap():
         self.dt=self._values['dt'] 
         self.F=self._values['F']
         self.z=self._values['z']
+        self.surface_runoff = self._values['surface_runoff_depth_m']
+        self.soil_storage_deficit = self._values['soil_reservoir_storage_deficit_m']
         self.basin_area_km2=self.basin_area_km2
         
         self.max_soil_res_def=self._values['max_state_var_change_soilResDef']
@@ -146,37 +151,55 @@ class EnKF_wrap():
         # soil_storage_avail_m
         # print("check flot factor",self.factor)
         #################### lookup equation ####################
-        orig =self.x
-        resulted=self.res
-        basin_area_m2 =self.basin_area_km2*1000# define config file
+        enkf_model_diff = self.x - self.res
+        basin_area_m2 =self.basin_area_km2*1000*1000# define config file. move from km to m2
 
-        total_volume_change_ft3 = (orig-resulted)*3600
+        total_volume_change_ft3 = (enkf_model_diff)*3600
         
-        total_volume_change_m3 =3.28*(10**3)*total_volume_change_ft3
+        total_volume_change_m3 =(3.28**3)*total_volume_change_ft3 #changing ft3 to m3
         total_volume_change_m =total_volume_change_m3/basin_area_m2
 
         # set value of soil_storage_avail_m in the framework from CFE
-        soil_moisture_def_diff_m =max(total_volume_change_m -self._values['soil_storage_avail_m'],0) 
-        change_soil_moisture_def_m=min(soil_moisture_def_diff_m,total_volume_change_m)
+        # set value of soil moositure deficit
+        soil_moisture_def_diff_m =(total_volume_change_m -self._values['soil_storage_avail_m']) #leftover soil moisture
+        if soil_moisture_def_diff_m >= 0:
+            self.soil_storage_deficit  = self._values['soil_storage_avail_m']
+            self._values['soil_storage_avail_m'] = 0
+            total_volume_change_m = soil_moisture_def_diff_m
+        elif soil_moisture_def_diff_m < 0:
+            self.soil_storage_deficit = total_volume_change_m
+            self._values['soil_storage_avail_m'] += total_volume_change_m
+            total_volume_change_m = 0
+
+        # Get ratio of change between runoff queue depth and leftover volume change
+        if self.surface_runoff == 0:
+            self.surface_runoff_ratio = 0
+        else:
+            self.surface_runoff_ratio = ((self.surface_runoff + total_volume_change_m)/self.surface_runoff)
+        
+
+        #self._values['factor_soil_res_def'] = soil_moisture_def_diff_m
 
         # compute the % change of runoff queue
-        runoff_queue_change_depth=soil_moisture_def_diff_m
-        runoff_queue_volume= runoff_queue_change_depth*basin_area_m2
-        factor_runoff_queue=(runoff_queue_volume/3600)/self.x # change to m3/sec
-        state_var_change_runoff =0.01*(factor_runoff_queue/100)-0 
+        #runoff_queue_change_depth=total_volume_change_m #either 0 or soil storage available
+        #runoff_queue_volume= runoff_queue_change_depth*basin_area_m2
+        #factor_runoff_queue=(runoff_queue_volume/3600)/(enkf_model_diff) # change to m3/sec
+        # if enkf prediction is 0, then the factor runoff needs to be 0
+        #if self.res == 0:
+        #    factor_runoff_queue = 0
+
+        #state_var_change_runoff = factor_runoff_queue 
+        #state_var_change_runoff =0.01*(factor_runoff_queue/100) #runoff lookup equation
        
-        print("soil_moisture_def_diff_m",soil_moisture_def_diff_m)
-        self._values['factor_runoff'] = state_var_change_runoff
-        self._values['factor_soil_res_def'] = soil_moisture_def_diff_m
+        #print("soil_moisture_def_diff_m",soil_moisture_def_diff_m)
+        #self._values['factor_runoff'] = state_var_change_runoff
+       
 
         # change_soil_moisture_def_m
         # percent_change = change_soil_moisture_def_m/total_volume_change_m
 
         # relate to runoff queue usig the equa.
 
-            
-            
-            
             # Basin Area in config file Area normalised mass in meters
             # runoff_queue in meters
             # # ########################################

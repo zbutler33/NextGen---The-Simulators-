@@ -45,7 +45,7 @@ class EnKF_wrap():
 
         #------------------------------------------------------
         self._var_name_units_map = {"soil_reservoir_storage_deficit_m":['soil_reservoir_storage_deficit_m','m'],
-                                    "soil_storage_avail":['availible_soil_storage_m','m'],
+                                    "soil_storage_avail_m":['availible_soil_storage_m','m'],
                                     'max_state_var_change_soilResDef':['depth_of_water','m'],
                                     'F':['percent','%'],'enkf':['enkf_flow','cfs'],
                                     'factor_runoff':['percent','%'],'factor_soil_res_def':['percent','%'],
