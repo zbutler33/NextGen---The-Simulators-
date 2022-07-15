@@ -1,5 +1,5 @@
 {
-    "forcing_file":"./Forcing/forcing_data_01May07.csv",
+    "forcing_file":"./Forcing/forcing_data_Oct15.csv",
     "NGEN_catchments":"cat-36549,cat-36550,cat-36552,cat-36698,cat-36699",
     "catchment_area_km2":84.21526,
     "peturbation_factor": 0.75,
