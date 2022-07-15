@@ -49,7 +49,7 @@ class BMI_CFE():
                                   "DIRECT_RUNOFF",
                                   "GIUH_RUNOFF",
                                   "NASH_LATERAL_RUNOFF",
-                                  "DEEP_GW_TO_CHANNEL_FLUX","soil_storage_avail"]
+                                  "DEEP_GW_TO_CHANNEL_FLUX"]
         
         #------------------------------------------------------
         # Create a Python dictionary that maps CSDMS Standard
@@ -72,7 +72,6 @@ class BMI_CFE():
                                 'GIUH_RUNOFF':['flux_giuh_runoff_m','m'],
                                 'NASH_LATERAL_RUNOFF':['flux_nash_lateral_runoff_m','m'],
                                 'DEEP_GW_TO_CHANNEL_FLUX':['flux_from_deep_gw_to_chan_m','m'],
-                                "soil_storage_avail":['availible_soil_storage_m','m']
                           }
 
     #__________________________________________________________________
@@ -252,9 +251,9 @@ class BMI_CFE():
         
         
         # todo: fix this make it a good bmi 
-        self.availible_soil_storage_m=self.soil_reservoir['storage_max_m'] * 0.667-self.soil_reservoir['storage_m']
-        self.soil_storage_avail=self.soil_reservoir['storage_max_m'] * 0.667-self.soil_reservoir['storage_m']
-        self._values['soil_storage_avail']=self.soil_reservoir['storage_max_m'] * 0.667-self.soil_reservoir['storage_m']
+        #self.availible_soil_storage_m=self.soil_reservoir['storage_max_m'] * 0.667-self.soil_reservoir['storage_m']
+        #self.soil_storage_avail=self.soil_reservoir['storage_max_m'] * 0.667-self.soil_reservoir['storage_m']
+        self._values['soil_storage_avail_m']=self.soil_reservoir['storage_max_m'] * 0.667-self.soil_reservoir['storage_m']
       
 
     # __________________________________________________________________________________________________________

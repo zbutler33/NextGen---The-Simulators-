@@ -39,7 +39,7 @@ class BMI_CFE():
         self._input_var_names = [
             'atmosphere_water__time_integral_of_precipitation_mass_flux',
             'water_potential_evaporation_flux','state_var_change_soil','state_var_change_runoff',
-             'soil_storage_avail_m','soil_reservoir_storage_deficit_m','surface_runoff_depth_m']
+             'soil_reservoir','soil_reservoir_storage_deficit_m','surface_runoff_depth_m']
     
         #---------------------------------------------
         # Output variable names (CSDMS standard names)
@@ -60,6 +60,7 @@ class BMI_CFE():
         self._var_name_units_map = {
                                 "soil_reservoir_storage_deficit_m":['soil_reservoir_storage_deficit_m','m'],
                                 "surface_runoff_depth_m": ['surface_runoff_depth_m', 'm'],
+                                "soil_reservoir": ['soil_reservoir', 'm'], 
                                 'land_surface_water__runoff_volume_flux':['streamflow_cfs','ft3 s-1'],
                                 'land_surface_water__runoff_depth':['total_discharge','m'],
                                 #--------------   Dynamic inputs --------------------------------
