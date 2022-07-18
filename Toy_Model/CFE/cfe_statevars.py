@@ -388,7 +388,7 @@ class CFE():
 
         '''
         if cfe_state.timestep_rainfall_input_m == 0:
-            cfe_state.potential_et_m_per_timestep = int(0.0414/1000) #0.0414 average ET for October  
+            cfe_state.potential_et_m_per_timestep = int(0.131/1000) #0.131 average ET for October  
 
         elif cfe_state.timestep_rainfall_input_m > 0:
             cfe_state.potential_et_m_per_timestep = 0

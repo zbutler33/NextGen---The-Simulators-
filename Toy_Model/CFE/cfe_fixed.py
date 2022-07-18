@@ -47,7 +47,7 @@ class CFE():
 
         # ---------------------- SUBROUTINE ---------------------- #
         # ET from soil
-        cfe_state.actual_et_from_soil_m_per_timestep = 1
+        cfe_state.actual_et_from_soil_m_per_timestep = 0
         if(cfe_state.soil_reservoir['storage_m'] > cfe_state.soil_reservoir['wilting_point_m']): 
             self.et_from_soil(cfe_state)
 
