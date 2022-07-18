@@ -298,6 +298,7 @@ class BMI_CFE():
         self.volin                = 0
         self.volout               = 0
         self.volend               = 0
+        self.accumlated_aet       = 0
         return
     
     #________________________________________________________
@@ -356,7 +357,7 @@ class BMI_CFE():
 
         self.vol_soil_end = self.soil_reservoir['storage_m']
         
-        self.global_residual  = self.volstart + self.volin - self.volout - self.volend -self.vol_end_giuh
+        self.global_residual  = self.volstart + self.volin - self.volout - self.volend -self.vol_end_giuh - self.accumulated_aet
         self.schaake_residual = self.volin - self.vol_sch_runoff - self.vol_sch_infilt
         self.giuh_residual    = self.vol_sch_runoff - self.vol_out_giuh - self.vol_end_giuh
         self.soil_residual    = self.vol_soil_start + self.vol_sch_infilt - \
@@ -370,6 +371,7 @@ class BMI_CFE():
             print("   volume output: {:8.4f}".format(self.volout))
             print("    final volume: {:8.4f}".format(self.volend))
             print("        residual: {:6.4e}".format(self.global_residual))
+            print("        Total ET: {:6.4e}".format(self.accumlated_aet)))
 
 
             print("\nSCHAAKE MASS BALANCE")

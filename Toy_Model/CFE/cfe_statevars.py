@@ -61,6 +61,10 @@ class CFE():
         # ________________________________________________
         # SUBROUTINE
         self.et_from_soil(cfe_state)
+        cfe_state.accumulated_aet += cfe_state.actual_et_m_per_timestep
+        cfe_state.volout += cfe_state.actual_et_m_per_timestep
+
+
         
         # ________________________________________________
         if cfe_state.soil_reservoir_storage_deficit_m < cfe_state.infiltration_depth_m:
@@ -96,8 +100,8 @@ class CFE():
         self.conceptual_reservoir_flux_calc(cfe_state, cfe_state.soil_reservoir)
 
         # ________________________________________________
-        cfe_state.flux_perc_m = cfe_state.primary_flux
-        cfe_state.flux_lat_m = cfe_state.secondary_flux
+        cfe_state.flux_perc_m = cfe_state.primary_flux_m
+        cfe_state.flux_lat_m = cfe_state.secondary_flux_m
 
         # ________________________________________________
         cfe_state.gw_reservoir_storage_deficit_m = cfe_state.gw_reservoir['storage_max_m'] - cfe_state.gw_reservoir['storage_m']
@@ -126,11 +130,11 @@ class CFE():
         self.conceptual_reservoir_flux_calc(cfe_state, cfe_state.gw_reservoir) 
             
         # ________________________________________________
-        cfe_state.flux_from_deep_gw_to_chan_m = cfe_state.primary_flux
+        cfe_state.flux_from_deep_gw_to_chan_m = cfe_state.primary_flux_m
         cfe_state.vol_from_gw += cfe_state.flux_from_deep_gw_to_chan_m
         
         # ________________________________________________        
-        if not self.is_fabs_less_than_epsilon(cfe_state.secondary_flux, 1.0e-09):
+        if not self.is_fabs_less_than_epsilon(cfe_state.secondary_flux_m, 1.0e-09):
             print("problem with nonzero flux point 1\n")
                         
         # ________________________________________________                               
@@ -403,6 +407,9 @@ class CFE():
                 cfe_state.actual_et_m_per_timestep = Budyko * cfe_state.potential_et_m_per_timestep
                                
                 cfe_state.soil_reservoir['storage_m'] -= cfe_state.actual_et_m_per_timestep
+
+        cfe_state.actual_et_m_per_timestep = 3.0 
+        #
         return
             
             
