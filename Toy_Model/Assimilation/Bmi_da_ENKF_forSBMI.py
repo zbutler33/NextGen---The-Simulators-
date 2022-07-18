@@ -164,7 +164,7 @@ class EnKF_wrap():
         total_volume_change_m3 =(3.28**3)*total_volume_change_ft3 #changing ft3 to m3
         total_volume_change_m =total_volume_change_m3/basin_area_m2
 
-        print(total_volume_change_m)
+        #print(total_volume_change_m)
 
         ## CFE Underestimation
         if total_volume_change_m > 0:
@@ -202,21 +202,21 @@ class EnKF_wrap():
                 self._values['surface_runoff_ratio']=self.surface_runoff_ratio
                 self.surface_runoff = self.surface_runoff_ratio*self.surface_runoff
                 
-            print("Underestimate runoff ratio",self.surface_runoff_ratio)
+            #print("Underestimate runoff ratio",self.surface_runoff_ratio)
             
 
         ## CFE Overestimation
         if total_volume_change_m < 0:
 
-            soil_moisture_def_diff_m = total_volume_change_m - self.soil_storage_deficit #leftover soil moisture
+            #soil_moisture_def_diff_m = total_volume_change_m - self.soil_storage_deficit #leftover soil moisture
             #if soil_moisture_def_diff_m <= 0:
             #    self.soil_storage_deficit = total_volume_change_m
             #    self.soil_storage_avail += total_volume_change_m
             #    total_volume_change_m = 0
             
             #if soil_moisture_def_diff_m > 0:
-            leftover_depth_change_m= soil_moisture_def_diff_m
-            self.soil_storage_deficit  = self.soil_storage_avail # set by CFE
+            leftover_depth_change_m = soil_moisture_def_diff_m + total_volume_change_m
+            self.soil_storage_deficit  += soil_moisture_def_diff_m   # set by CFE
 
             # Need to check  
         # elif soil_moisture_def_diff_m<0:
@@ -234,7 +234,7 @@ class EnKF_wrap():
                 self._values['surface_runoff_ratio']=self.surface_runoff_ratio
                 self.surface_runoff = self.surface_runoff_ratio*self.surface_runoff
 
-            print("Overestimate runoff ratio",self.surface_runoff_ratio)
+            #print("Overestimate runoff ratio",self.surface_runoff_ratio)
             
         # original#######################
         # if soil_moisture_def_diff_m >= 0:

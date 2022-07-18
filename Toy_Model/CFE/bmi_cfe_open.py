@@ -5,6 +5,7 @@ import sys
 import json
 import matplotlib.pyplot as plt
 import cfe
+#import cfe_statevars
 
 class BMI_CFE():
     def __init__(self):
@@ -234,6 +235,7 @@ class BMI_CFE():
         # ________________________________________________________________ #
         # CREATE AN INSTANCE OF THE CONCEPTUAL FUNCTIONAL EQUIVALENT MODEL #
         self.cfe_model = cfe.CFE()
+        #self.cfe_model = cfe_statevars.CFE()
         # ________________________________________________________________ #
         # ________________________________________________________________ #
         ####################################################################
