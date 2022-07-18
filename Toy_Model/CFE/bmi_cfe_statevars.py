@@ -39,7 +39,7 @@ class BMI_CFE():
         self._input_var_names = [
             'atmosphere_water__time_integral_of_precipitation_mass_flux',
             'water_potential_evaporation_flux','state_var_change_soil','state_var_change_runoff',
-             'soil_storage_avail_m','soil_reservoir_storage_deficit_m','surface_runoff_depth_m']
+             'soil_reservoir','soil_reservoir_storage_deficit_m','surface_runoff_depth_m']#,'accumulated_aet']
     
         #---------------------------------------------
         # Output variable names (CSDMS standard names)
@@ -50,6 +50,7 @@ class BMI_CFE():
                                   "GIUH_RUNOFF",
                                   "NASH_LATERAL_RUNOFF",
                                   "DEEP_GW_TO_CHANNEL_FLUX"]
+                                  #"accumulated_aet"]
         
         #------------------------------------------------------
         # Create a Python dictionary that maps CSDMS Standard
@@ -60,6 +61,7 @@ class BMI_CFE():
         self._var_name_units_map = {
                                 "soil_reservoir_storage_deficit_m":['soil_reservoir_storage_deficit_m','m'],
                                 "surface_runoff_depth_m": ['surface_runoff_depth_m', 'm'],
+                                "soil_reservoir": ['soil_reservoir', 'm'], 
                                 'land_surface_water__runoff_volume_flux':['streamflow_cfs','ft3 s-1'],
                                 'land_surface_water__runoff_depth':['total_discharge','m'],
                                 #--------------   Dynamic inputs --------------------------------
@@ -71,6 +73,7 @@ class BMI_CFE():
                                 'GIUH_RUNOFF':['flux_giuh_runoff_m','m'],
                                 'NASH_LATERAL_RUNOFF':['flux_nash_lateral_runoff_m','m'],
                                 'DEEP_GW_TO_CHANNEL_FLUX':['flux_from_deep_gw_to_chan_m','m']
+                                #'accumulated_aet':['accumulated_aet', 'm']
                           }
 
     #__________________________________________________________________
@@ -297,6 +300,7 @@ class BMI_CFE():
         self.volin                = 0
         self.volout               = 0
         self.volend               = 0
+        #self.vol_et_from_soil     = 0
         return
     
     #________________________________________________________
@@ -355,11 +359,11 @@ class BMI_CFE():
 
         self.vol_soil_end = self.soil_reservoir['storage_m']
         
-        self.global_residual  = self.volstart + self.volin - self.volout - self.volend -self.vol_end_giuh
+        self.global_residual  = self.volstart + self.volin - self.volout - self.volend -self.vol_end_giuh #- self.accumulated_aet
         self.schaake_residual = self.volin - self.vol_sch_runoff - self.vol_sch_infilt
         self.giuh_residual    = self.vol_sch_runoff - self.vol_out_giuh - self.vol_end_giuh
         self.soil_residual    = self.vol_soil_start + self.vol_sch_infilt - \
-                                self.vol_soil_to_lat_flow - self.vol_soil_end - self.vol_to_gw
+                                self.vol_soil_to_lat_flow - self.vol_soil_end - self.vol_to_gw #- self.vol_et_from_soil
         self.nash_residual    = self.vol_in_nash - self.vol_out_nash - self.vol_in_nash_end
         self.gw_residual      = self.vol_in_gw_start + self.vol_to_gw - self.vol_from_gw - self.vol_in_gw_end
         if verbose:            
@@ -369,6 +373,7 @@ class BMI_CFE():
             print("   volume output: {:8.4f}".format(self.volout))
             print("    final volume: {:8.4f}".format(self.volend))
             print("        residual: {:6.4e}".format(self.global_residual))
+            #print("        Total ET: {:6.4e}".format(self.accumulated_aet))
 
 
             print("\nSCHAAKE MASS BALANCE")
@@ -389,6 +394,7 @@ class BMI_CFE():
             print(" vol. soil to gw: {:8.4f}".format(self.vol_soil_to_gw))
             print(" final vol. soil: {:8.4f}".format(self.vol_soil_end))   
             print("vol. soil resid.: {:6.4e}".format(self.soil_residual))
+            #print("         soil et: {:6.4e}".format(self.vol_et_from_soil))
 
 
             print("\nNASH CASCADE CONCEPTUAL RESERVOIR MASS BALANCE")
