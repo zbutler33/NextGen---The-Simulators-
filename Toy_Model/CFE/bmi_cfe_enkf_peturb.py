@@ -4,7 +4,7 @@ import pandas as pd
 import sys
 import json
 import matplotlib.pyplot as plt
-import cfe
+#import cfe
 import cfe_statevars
 
 class BMI_CFE():
@@ -38,7 +38,7 @@ class BMI_CFE():
         #---------------------------------------------
         self._input_var_names = [
             'atmosphere_water__time_integral_of_precipitation_mass_flux',
-            'water_potential_evaporation_flux', 'soil_storage_avail_m','soil_reservoir_storage_deficit_m','surface_runoff_depth_m',
+            'water_potential_evaporation_flux',   'soil_storage_avail_m','soil_reservoir_storage_deficit_m','surface_runoff_depth_m',
             'state_var_change_soil','state_var_change_runoff']
     
         #---------------------------------------------
@@ -59,7 +59,6 @@ class BMI_CFE():
         #------------------------------------------------------
         self._var_name_units_map = {
                                 "soil_reservoir_storage_deficit_m":['soil_reservoir_storage_deficit_m','m'],
-                                "surface_runoff_depth_m": ['surface_runoff_depth_m', 'm'],
                                 "soil_storage_avail_m":['availible_soil_storage_m','m'],
                                 'land_surface_water__runoff_volume_flux':['streamflow_cfs','ft3 s-1'],
                                 'land_surface_water__runoff_depth':['total_discharge','m'],
@@ -131,6 +130,9 @@ class BMI_CFE():
         # Inputs
         self.timestep_rainfall_input_m = 0
         self.potential_et_m_per_s      = 0
+        self.time_state_var_change_soil = 1 #Initial value of 1 to start with no change in state variable (100%)
+        self.time_state_var_change_runoff = 1
+        
         
         # ________________________________________________
         # calculated flux variables
@@ -235,7 +237,8 @@ class BMI_CFE():
         # ________________________________________________________________ #
         # ________________________________________________________________ #
         # CREATE AN INSTANCE OF THE CONCEPTUAL FUNCTIONAL EQUIVALENT MODEL #
-        self.cfe_model = cfe.CFE()
+        #self.cfe_model = cfe.CFE()
+        self.cfe_model = cfe_statevars.CFE()
         # ________________________________________________________________ #
         # ________________________________________________________________ #
         ####################################################################
@@ -254,8 +257,9 @@ class BMI_CFE():
         #self.availible_soil_storage_m=self.soil_reservoir['storage_max_m'] * 0.667-self.soil_reservoir['storage_m']
         #self.soil_storage_avail=self.soil_reservoir['storage_max_m'] * 0.667-self.soil_reservoir['storage_m']
         self._values['soil_storage_avail_m']=self.soil_reservoir['storage_max_m'] * 0.667-self.soil_reservoir['storage_m']
-      
-
+        print("peturbed flow", self._values['land_surface_water__runoff_depth'])
+        
+        # "self._values['land_surface_water__runoff_depth']
     # __________________________________________________________________________________________________________
     # __________________________________________________________________________________________________________
     # BMI: Model Control Function

@@ -45,12 +45,12 @@ class BMI_CFE():
         #---------------------------------------------
         # Output variable names (CSDMS standard names)
         #---------------------------------------------
-        self._output_var_names = ['land_surface_water__runoff_depth_ens']
-        #                          'land_surface_water__runoff_volume_flux',
-        #                          "DIRECT_RUNOFF",
-        #                          "GIUH_RUNOFF",
-        #                          "NASH_LATERAL_RUNOFF",
-        #                          "DEEP_GW_TO_CHANNEL_FLUX"]
+        self._output_var_names = ['land_surface_water__runoff_depth_ens',
+                                 'land_surface_water__runoff_volume_flux',
+                                 "DIRECT_RUNOFF",
+                                 "GIUH_RUNOFF",
+                                 "NASH_LATERAL_RUNOFF",
+                                 "DEEP_GW_TO_CHANNEL_FLUX"]
         
         #------------------------------------------------------
         # Create a Python dictionary that maps CSDMS Standard

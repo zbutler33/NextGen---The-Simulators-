@@ -226,6 +226,7 @@ class CFE():
             cfe_state.runoff_queue_m_per_timestep[i] += cfe_state.giuh_ordinates[i] * (cfe_state.surface_runoff_depth_m * cfe_state.time_state_var_change_runoff)
             # percentage is the change in total. 12 USGS, 10 CFE, DA 11. 1 cfs change (3600/2) = 1800 / (10*3600) =  0.05% so 1.05% increase
             # divide by 2 becuase assuming linear change in total mass runoff discrepency between time steps
+            print("state_var_change_runoff", cfe_state.time_state_var_change_runoff)
 
         cfe_state.flux_giuh_runoff_m = cfe_state.runoff_queue_m_per_timestep[0]
         
@@ -387,57 +388,57 @@ class CFE():
         If we have rainfall, then we want no ET for this example
 
         '''
-        if cfe_state.timestep_rainfall_input_m == 0:
-            cfe_state.potential_et_m_per_timestep = int(0.131/1000) #0.131 average ET for October  
+#         if cfe_state.timestep_rainfall_input_m == 0:
+#             cfe_state.potential_et_m_per_timestep = int(0.131/1000) #0.131 average ET for October  
 
-        elif cfe_state.timestep_rainfall_input_m > 0:
-            cfe_state.potential_et_m_per_timestep = 0
+#         elif cfe_state.timestep_rainfall_input_m > 0:
+#             cfe_state.potential_et_m_per_timestep = 0
         
 
-        if cfe_state.potential_et_m_per_timestep > 0:
+#         if cfe_state.potential_et_m_per_timestep > 0:
                        
-            #print("this should not happen yet. Still debugging the other functions.")
-            cond2=cfe_state.soil_reservoir['storage_m'] >= cfe_state.soil_reservoir['storage_threshold_primary_m']
-            #print(' cond2 : ', cond2)
-            cond3=((cfe_state.soil_reservoir['storage_m'] > cfe_state.soil_params['wltsmc']) and (cfe_state.soil_reservoir['storage_m'] < cfe_state.soil_reservoir['storage_threshold_primary_m']))
-           # print(' cond3 : ', cond3)             
-            if cond2:
+#             #print("this should not happen yet. Still debugging the other functions.")
+#             cond2=cfe_state.soil_reservoir['storage_m'] >= cfe_state.soil_reservoir['storage_threshold_primary_m']
+#             #print(' cond2 : ', cond2)
+#             cond3=((cfe_state.soil_reservoir['storage_m'] > cfe_state.soil_params['wltsmc']) and (cfe_state.soil_reservoir['storage_m'] < cfe_state.soil_reservoir['storage_threshold_primary_m']))
+#            # print(' cond3 : ', cond3)             
+#             if cond2:
         
-               # self.AET_soil_m += self.actual_et_m_per_timestep 
-            #if cfe_state.soil_reservoir['storage_m'] >= cfe_state.soil_reservoir['storage_threshold_primary_m']:
+#                # self.AET_soil_m += self.actual_et_m_per_timestep 
+#             #if cfe_state.soil_reservoir['storage_m'] >= cfe_state.soil_reservoir['storage_threshold_primary_m']:
             
-                cfe_state.actual_et_m_per_timestep = np.minimum(cfe_state.potential_et_m_per_timestep, 
-                                                       cfe_state.soil_reservoir['storage_m'])
+#                 cfe_state.actual_et_m_per_timestep = np.minimum(cfe_state.potential_et_m_per_timestep, 
+#                                                        cfe_state.soil_reservoir['storage_m'])
 
-                cfe_state.soil_reservoir['storage_m'] -= cfe_state.actual_et_m_per_timestep
+#                 cfe_state.soil_reservoir['storage_m'] -= cfe_state.actual_et_m_per_timestep
 
-                #cfe_state.et_struct['potential_et_m_per_timestep'] = 0.0
-            elif cond3:
+#                 #cfe_state.et_struct['potential_et_m_per_timestep'] = 0.0
+#             elif cond3:
             
-                #Budyko_numerator = self.soil_reservoir['storage_m'] - self.soil_params['wltsmc']
-                #Budyko_denominator = self.soil_reservoir['storage_threshold_primary_m'] - \
-                #                     self.soil_params['wltsmc']
-                #Budyko = Budyko_numerator / Budyko_denominator
+#                 #Budyko_numerator = self.soil_reservoir['storage_m'] - self.soil_params['wltsmc']
+#                 #Budyko_denominator = self.soil_reservoir['storage_threshold_primary_m'] - \
+#                 #                     self.soil_params['wltsmc']
+#                 #Budyko = Budyko_numerator / Budyko_denominator
                                
-                #self.actual_et_m_per_timestep = Budyko * self.potential_et_m_per_timestep
+#                 #self.actual_et_m_per_timestep = Budyko * self.potential_et_m_per_timestep
                                
-                #self.soil_reservoir['storage_m'] -= self.actual_et_m_per_timestep
-                #self.AET_soil_m += self.actual_et_m_per_timestep
+#                 #self.soil_reservoir['storage_m'] -= self.actual_et_m_per_timestep
+#                 #self.AET_soil_m += self.actual_et_m_per_timestep
 
-            #elif (cfe_state.soil_reservoir['storage_m'] > cfe_state.soil_reservoir['wilting_point_m'] and 
-            #      cfe_state.soil_reservoir['storage_m'] < cfe_state.soil_reservoir['storage_threshold_primary_m']):
+#             #elif (cfe_state.soil_reservoir['storage_m'] > cfe_state.soil_reservoir['wilting_point_m'] and 
+#             #      cfe_state.soil_reservoir['storage_m'] < cfe_state.soil_reservoir['storage_threshold_primary_m']):
             
-                Budyko_numerator = cfe_state.soil_reservoir['storage_m'] - cfe_state.soil_params['wltsmc']
-                Budyko_denominator = cfe_state.soil_reservoir['storage_threshold_primary_m'] - \
-                                     cfe_state.soil_params['wltsmc']
-                Budyko = Budyko_numerator / Budyko_denominator
+#                 Budyko_numerator = cfe_state.soil_reservoir['storage_m'] - cfe_state.soil_params['wltsmc']
+#                 Budyko_denominator = cfe_state.soil_reservoir['storage_threshold_primary_m'] - \
+#                                      cfe_state.soil_params['wltsmc']
+#                 Budyko = Budyko_numerator / Budyko_denominator
                                
-                cfe_state.actual_et_m_per_timestep = Budyko * cfe_state.potential_et_m_per_timestep
+#                 cfe_state.actual_et_m_per_timestep = Budyko * cfe_state.potential_et_m_per_timestep
                                
-                cfe_state.soil_reservoir['storage_m'] -= cfe_state.actual_et_m_per_timestep
+#                 cfe_state.soil_reservoir['storage_m'] -= cfe_state.actual_et_m_per_timestep
 
          
-        return
+#         return
             
             
     # __________________________________________________________________________________________________________

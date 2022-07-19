@@ -39,13 +39,14 @@ class EnKF_wrap():
         #---------------------------------------------
         # Output variable names (CSDMS standard names)
         #---------------------------------------------
-        self._output_var_names = ['factor','x_prior','x_post','enkf','factor_runoff','factor_soil_res_def','surface_runoff_ratio']    
+        self._output_var_names = ['factor','x_prior','x_post','enkf','factor_runoff','factor_soil_res_def','surface_runoff_ratio','surface_runoff_depth_updated_m']    
         
         #------------------------------------------------------
         # Create a Python dictionary that maps CSDMS Standard Names to the model's internal variable names.
 
         #------------------------------------------------------
         self._var_name_units_map = {"soil_reservoir_storage_deficit_m":['soil_reservoir_storage_deficit_m','m'],
+                                    "surface_runoff_depth_updated_m": ['surface_runoff_depth_updated_m', 'm'],
                                     "surface_runoff_depth_m": ['surface_runoff_depth_m', 'm'],
                                     "soil_storage_avail_m":['availible_soil_storage_m','m'],
                                     "basin_area_km2":['basin_area_km2','km2'],
@@ -151,6 +152,7 @@ class EnKF_wrap():
         self._values['x_prior'] = self.x
         self._values['enkf'] = self.res
         self._values['factor'] = self.factor 
+ 
         
         # soil_storage_avail_m
         # print("check flot factor",self.factor)
@@ -166,144 +168,80 @@ class EnKF_wrap():
 
         #print(total_volume_change_m)
 
-        ## CFE Underestimation
+        ## CFE overstimation
         if total_volume_change_m > 0:
-        # set value of soil_storage_avail_m in the framework from CFE
-        # set value of soil moositure deficit
-    
-            soil_moisture_def_diff_m = total_volume_change_m - self.soil_storage_deficit #leftover soil moisture
+            #leftover after filling void in the soil column
+            soil_moisture_def_diff_m = total_volume_change_m - self.soil_storage_deficit 
+            
+            # if the difference can be covered by the soil res deficit
+            if soil_moisture_def_diff_m <0:        
+            
+            # update the availible storage by adding the difference 
+                self.soil_storage_avail += total_volume_change_m                       # check if this is the avail not void
+                self.soil_storage_deficit=self.soil_storage_deficit-total_volume_change_m
+            # there will not be excess to be left over, everythin will be used by the soil
+                leftover_depth_change_m = 0
+            
+            # if the difference is beyond that can be accomodated by the soil
+            if soil_moisture_def_diff_m >= 0: 
+                leftover_depth_change_m = soil_moisture_def_diff_m # the difference goes to updating the next state variable
+                self.soil_storage_avail=self.soil_storage_deficit+self.soil_storage_avail # Full tank max
+                self.soil_storage_deficit=0
+           
+            # the remaining to be used for updating the next parameter    
 
-            #leftover_depth_change_m = soil_moisture_def_diff_m
 
-            #if soil_moisture_def_diff_m <= 0: #cannot be positive because negative above
-            #soil_moisture_def_diff_m = total_volume_change_m + self.soil_storage_deficit
-            #self.soil_storage_deficit = total_volume_change_m
-            self.soil_storage_avail += total_volume_change_m
-            #total_volume_change_m = 0
-            leftover_depth_change_m = soil_moisture_def_diff_m
-        
-            #if soil_moisture_def_diff_m > 0:
-            #    leftover_depth_change_m = soil_moisture_def_diff_m
-            #    self.soil_storage_deficit  = self.soil_storage_avail # set by CFE
-
-            # Need to check  
-            #elif soil_moisture_def_diff_m<0:
-                #leftover_depth_change_m=0
-                #self.soil_storage_deficit = total_volume_change_m
-                #self.soil_storage_avail += total_volume_change_m
-                #total_volume_change_m = 0
-
-            # Get ratio of change between runoff queue depth and leftover volume change
             if self.surface_runoff == 0:
                 self.surface_runoff_ratio = 1
                 self._values['surface_runoff_ratio']=1 #Keep CFE as it is, ratio is 1. 
+                self._values['surface_runoff_depth_updated_m']=self.surface_runoff
             else:
-                self.surface_runoff_ratio = ((self.surface_runoff + leftover_depth_change_m)/self.surface_runoff)
+                leftover_vol_m3_sec= leftover_depth_change_m*basin_area_m2/3600
+                leftover_vol_ft3_sec=leftover_vol_m3_sec/(3.28**3)
+                self.surface_runoff_ratio=(self.x-leftover_vol_ft3_sec)/self.x
+                print("over estimaiton ratio",self.surface_runoff_ratio)
+                print("new value",self.surface_runoff)
+                print("CFE",self.x)
+                print("enkf",self.res)
+                # self.surface_runoff_ratio = ((self.surface_runoff - leftover_depth_change_m)/self.surface_runoff)
                 self._values['surface_runoff_ratio']=self.surface_runoff_ratio
                 self.surface_runoff = self.surface_runoff_ratio*self.surface_runoff
+                self._values['surface_runoff_depth_updated_m']=self.surface_runoff
+                print("over estimaiton ratio",self.surface_runoff_ratio)
+                print("new value",self.surface_runoff)
+                print("CFE",self.x)
+                print("enkf",self.res)
                 
-            #print("Underestimate runoff ratio",self.surface_runoff_ratio)
-            
+                
 
-        ## CFE Overestimation
+        ## CFE understimation
         if total_volume_change_m < 0:
-
-            #soil_moisture_def_diff_m = total_volume_change_m - self.soil_storage_deficit #leftover soil moisture
-            #if soil_moisture_def_diff_m <= 0:
-            #    self.soil_storage_deficit = total_volume_change_m
-            #    self.soil_storage_avail += total_volume_change_m
-            #    total_volume_change_m = 0
-            
-            #if soil_moisture_def_diff_m > 0:
-            leftover_depth_change_m = soil_moisture_def_diff_m + total_volume_change_m
-            self.soil_storage_deficit  += soil_moisture_def_diff_m   # set by CFE
-
-            # Need to check  
-        # elif soil_moisture_def_diff_m<0:
-        #     leftover_depth_change_m=0
-        #     self.soil_storage_deficit = total_volume_change_m
-        #     self.soil_storage_avail += total_volume_change_m
-        #     total_volume_change_m = 0
-
-                # Get ratio of change between runoff queue depth and leftover volume change
+            soil_moisture_def_diff_m = abs(total_volume_change_m) + self.soil_storage_deficit
+            leftover_depth_change_m = soil_moisture_def_diff_m
+            # self.soil_storage_deficit = self.soil_storage_deficit   # set by CFE
+            # self.soil_storage_avail=self.soil_storage_avail
+            self._values['surface_runoff_depth_updated_m']=self.surface_runoff
             if self.surface_runoff == 0:
                 self.surface_runoff_ratio = 1
                 self._values['surface_runoff_ratio']=1
+                self._values['surface_runoff_depth_updated_m']=self.surface_runoff
+                
+                
             else:
-                self.surface_runoff_ratio = ((self.surface_runoff + leftover_depth_change_m)/(self.surface_runoff))
+                leftover_vol_m3_sec= leftover_depth_change_m*basin_area_m2/3600
+                leftover_vol_ft3_sec=leftover_vol_m3_sec/(3.28**3)                
+                self.surface_runoff_ratio=(self.x+leftover_vol_ft3_sec)/self.x
+
+                # self.surface_runoff_ratio = ((self.surface_runoff + leftover_depth_change_m)/(self.surface_runoff))
                 self._values['surface_runoff_ratio']=self.surface_runoff_ratio
                 self.surface_runoff = self.surface_runoff_ratio*self.surface_runoff
 
-            #print("Overestimate runoff ratio",self.surface_runoff_ratio)
-            
-        # original#######################
-        # if soil_moisture_def_diff_m >= 0:
-        #     self.soil_storage_deficit  = self.soil_storage
-        #     self.soil_storage = 0
-        #     total_volume_change_m = soil_moisture_def_diff_m
-        # elif soil_moisture_def_diff_m < 0:
-        #     self.soil_storage_deficit = total_volume_change_m
-        #     self.soil_storage += total_volume_change_m
-        #     total_volume_change_m = 0
-        ###################
-
-            
-        
-
-        #self._values['factor_soil_res_def'] = soil_moisture_def_diff_m
-
-        # compute the % change of runoff queue
-        #runoff_queue_change_depth=total_volume_change_m #either 0 or soil storage available
-        #runoff_queue_volume= runoff_queue_change_depth*basin_area_m2
-        #factor_runoff_queue=(runoff_queue_volume/3600)/(enkf_model_diff) # change to m3/sec
-        # if enkf prediction is 0, then the factor runoff needs to be 0
-        #if self.res == 0:
-        #    factor_runoff_queue = 0
-
-        #state_var_change_runoff = factor_runoff_queue 
-        #state_var_change_runoff =0.01*(factor_runoff_queue/100) #runoff lookup equation
-       
-        #print("soil_moisture_def_diff_m",soil_moisture_def_diff_m)
-        #self._values['factor_runoff'] = state_var_change_runoff
-       
-
-        # change_soil_moisture_def_m
-        # percent_change = change_soil_moisture_def_m/total_volume_change_m
-
-        # relate to runoff queue usig the equa.
-
-            # Basin Area in config file Area normalised mass in meters
-            # runoff_queue in meters
-            # # ########################################
-            # state_var_change_runoff=0.01*(factor_runoff_queue)-0 # the remaining factor has to be applied here
-            # self._values['factor_runoff'] = state_var_change_runoff
-            # self._values['factor_soil_res_def'] = state_var_change_soilResDef
-        
-        # state_var_change_soilResDef= 49.89247652*(1-self.factor)-49.8818328811 # but this has a physical limit;get.value(max_soil_res_def)
-        # print(state_var_change_soilResDef,"check_this")
-        # if state_var_change_soilResDef >  self.max_soil_res_def:
-        #     factor_soil_res_def=(self.max_soil_res_def/49.89247652)+49.8818328811
-        #     factor_runoff_queue =self.factor-factor_soil_res_def
-            # total mass change analysis vs mean puturbed; volume
-            ##############################################
-            # volume = cfs*3600, meter,
-            # factor=enkf/CFE
-            
-        
-        
-        #######################
-        
-        # to activate once update is functional
-#         L= pd.DataFrame(self.L, columns=["state_Var","streamflow"])
-
-#         change = L.loc[L["streamflow"] == self.factor] # finding similar str. flow change [state_Var %,streamflow%]
-
-#         multiplier= int(change["state_Var"])
-#         print("mult",multiplier)
-#         print("change",change)
-    
-        
-
+                self._values['surface_runoff_depth_updated_m']=self.surface_runoff
+                print("under estimaiton ratio",self.surface_runoff_ratio)
+                print("under estimaiton",self.surface_runoff)
+                print("CFE",self.x)
+                print("enkf",self.res)
+                
             #BMI: Model Control Function
 ####################################################################
     # BMI: Model Control Function if update until may be used (not functional)

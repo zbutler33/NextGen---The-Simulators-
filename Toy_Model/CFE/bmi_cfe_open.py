@@ -5,7 +5,6 @@ import sys
 import json
 import matplotlib.pyplot as plt
 import cfe
-#import cfe_statevars
 
 class BMI_CFE():
     def __init__(self):
