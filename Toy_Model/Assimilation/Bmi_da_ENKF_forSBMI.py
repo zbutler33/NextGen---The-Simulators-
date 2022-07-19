@@ -189,8 +189,6 @@ class EnKF_wrap():
                 self.soil_storage_deficit=0
            
             # the remaining to be used for updating the next parameter    
-
-
             if self.surface_runoff == 0:
                 self.surface_runoff_ratio = 1
                 self._values['surface_runoff_ratio']=1 #Keep CFE as it is, ratio is 1. 
@@ -199,11 +197,6 @@ class EnKF_wrap():
                 leftover_vol_m3_sec= leftover_depth_change_m*basin_area_m2/3600
                 leftover_vol_ft3_sec=leftover_vol_m3_sec/(3.28**3)
                 self.surface_runoff_ratio=(self.x-leftover_vol_ft3_sec)/self.x
-                print("over estimaiton ratio",self.surface_runoff_ratio)
-                print("new value",self.surface_runoff)
-                print("CFE",self.x)
-                print("enkf",self.res)
-                # self.surface_runoff_ratio = ((self.surface_runoff - leftover_depth_change_m)/self.surface_runoff)
                 self._values['surface_runoff_ratio']=self.surface_runoff_ratio
                 self.surface_runoff = self.surface_runoff_ratio*self.surface_runoff
                 self._values['surface_runoff_depth_updated_m']=self.surface_runoff
@@ -211,8 +204,7 @@ class EnKF_wrap():
                 print("new value",self.surface_runoff)
                 print("CFE",self.x)
                 print("enkf",self.res)
-                
-                
+                 
 
         ## CFE understimation
         if total_volume_change_m < 0:
