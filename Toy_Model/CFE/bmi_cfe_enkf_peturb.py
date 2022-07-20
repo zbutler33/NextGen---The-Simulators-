@@ -4,7 +4,7 @@ import pandas as pd
 import sys
 import json
 import matplotlib.pyplot as plt
-import cfe
+#import cfe
 import cfe_statevars
 
 class BMI_CFE():
@@ -58,7 +58,8 @@ class BMI_CFE():
         #     since the input variable names could come from any forcing...
         #------------------------------------------------------
         self._var_name_units_map = {
-                                "soil_reservoir_storage_deficit_m":['soil_reservoir_storage_deficit_m','m'],
+                                "soil_reservoir_storage_deficit_out_m":['soil_reservoir_storage_deficit_out_m','m'],
+            "soil_reservoir_storage_deficit_m":['soil_reservoir_storage_deficit_m','m'],
                                 "soil_storage_avail_m":['availible_soil_storage_m','m'],
                                 'land_surface_water__runoff_volume_flux':['streamflow_cfs','ft3 s-1'], #Wrong unit, 
                                 'land_surface_water__runoff_depth':['total_discharge','ft3 s-1'],
@@ -261,7 +262,9 @@ class BMI_CFE():
         #self.soil_storage_avail=self.soil_reservoir['storage_max_m'] * 0.667-self.soil_reservoir['storage_m']
         self._values['soil_storage_avail_m']=self.soil_reservoir['storage_max_m'] * 0.667-self.soil_reservoir['storage_m']
         print("peturbed flow", self._values['land_surface_water__runoff_depth'])
-        
+        print("CFE_open_xxxxx_soil_reservoir_storage_deficit_m",self.soil_reservoir_storage_deficit_m)
+        self._values['soil_reservoir_storage_deficit_out_m'] = self.soil_reservoir_storage_deficit_m
+        self.soil_reservoir_storage_deficit_m=self._values['soil_reservoir_storage_deficit_m']
         # "self._values['land_surface_water__runoff_depth']
     # __________________________________________________________________________________________________________
     # __________________________________________________________________________________________________________
