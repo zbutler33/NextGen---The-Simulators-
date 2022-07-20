@@ -4,7 +4,7 @@ import pandas as pd
 import sys
 import json
 import matplotlib.pyplot as plt
-#import cfe
+import cfe
 import cfe_statevars
 
 class BMI_CFE():
