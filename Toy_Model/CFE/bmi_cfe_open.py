@@ -62,7 +62,10 @@ class BMI_CFE():
                                 "soil_storage_avail_m":['availible_soil_storage_m','m'],
                                 'land_surface_water__runoff_volume_flux':['streamflow_cfs','ft3 s-1'],
                                 'land_surface_water__runoff_depth':['total_discharge','m'],
+                                #'land_surface_water__runoff_volume_flux':['streamflow_cmh','m3 h-1'],
+                                #'land_surface_water__runoff_depth':['total_discharge','m h-1'],
                                 #--------------   Dynamic inputs --------------------------------
+                                #'atmosphere_water__time_integral_of_precipitation_mass_flux':['timestep_rainfall_input_m','m h-1'],
                                 'atmosphere_water__time_integral_of_precipitation_mass_flux':['timestep_rainfall_input_m','kg m-2'],
                                 'water_potential_evaporation_flux':['potential_et_m_per_s','m s-1'],
                                 'DIRECT_RUNOFF':['surface_runoff_depth_m','m'],

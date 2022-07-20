@@ -158,8 +158,9 @@ class CFE():
         cfe_state.vol_out_nash += cfe_state.flux_nash_lateral_runoff_m
         
         # ________________________________________________
-        cfe_state.flux_Qout_m = cfe_state.flux_giuh_runoff_m + cfe_state.flux_nash_lateral_runoff_m + cfe_state.flux_from_deep_gw_to_chan_m
-        cfe_state.total_discharge = cfe_state.flux_Qout_m * cfe_state.catchment_area_km2 * 1000000.0 / 3600.0
+        cfe_state.flux_Qout_m = cfe_state.flux_giuh_runoff_m + cfe_state.flux_nash_lateral_runoff_m + cfe_state.flux_from_deep_gw_to_chan_m #m/hr
+        cfe_state.total_discharge = cfe_state.flux_Qout_m * cfe_state.catchment_area_km2 * 1000000.0 / 3600.0 #m3/s
+        #cfe_state.total_discharge = cfe_state.flux_Qout_m * cfe_state.catchment_area_km2 * 1000000.0 #m h-1
         
         # ________________________________________________
         cfe_state.current_time_step += 1
@@ -226,7 +227,7 @@ class CFE():
             cfe_state.runoff_queue_m_per_timestep[i] += cfe_state.giuh_ordinates[i] * (cfe_state.surface_runoff_depth_m * cfe_state.time_state_var_change_runoff)
             # percentage is the change in total. 12 USGS, 10 CFE, DA 11. 1 cfs change (3600/2) = 1800 / (10*3600) =  0.05% so 1.05% increase
             # divide by 2 becuase assuming linear change in total mass runoff discrepency between time steps
-            print("state_var_change_runoff", cfe_state.time_state_var_change_runoff)
+            #print("state_var_change_runoff", cfe_state.time_state_var_change_runoff)
 
         cfe_state.flux_giuh_runoff_m = cfe_state.runoff_queue_m_per_timestep[0]
         
