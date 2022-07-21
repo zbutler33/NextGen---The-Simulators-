@@ -1,6 +1,6 @@
 {"model_to_assimilate":"CFE",
-    "initial_mean":"110",
-    "initial_cov":"20",
+    "initial_mean":"100",
+    "initial_cov":"10",
     "initial_obs":"1",
     "time_step_in_seconds":"3600",
     "state_transition_multiplier_matrix":"100",

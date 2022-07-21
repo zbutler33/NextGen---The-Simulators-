@@ -142,6 +142,8 @@ class EnKF_wrap():
         self.z=self._values['z']
         self.surface_runoff = self._values['surface_runoff_depth_m']
         self.soil_storage_deficit = self._values['soil_reservoir_storage_deficit_m'] # get from CFE peturbed == CFE pet
+        print("Beginning----------------------------") #beginning of print statements
+        print("self.f", self.F)
         print("soil_storage_deficit_from CFE",self.soil_storage_deficit)
         self.soil_storage_avail  = self._values['soil_storage_avail_m']
         
@@ -162,7 +164,8 @@ class EnKF_wrap():
         # soil_storage_avail_m
         # print("check flot factor",self.factor)
         #################### lookup equation ####################
-        enkf_model_diff = (self.x - self.res)
+        #stream_diff = (self.x - self.z) # Difference between CFE and Obs
+        enkf_model_diff = (self.x - self.res) #Difference between CFE and EnKF
        
         basin_area_m2 =self.basin_area_km2*1000*1000# define config file. move from km to m2
 
@@ -201,6 +204,7 @@ class EnKF_wrap():
                     self.surface_runoff_ratio = 1
                     self._values['surface_runoff_ratio']=1 #Keep CFE as it is, ratio is 1. 
                     self._values['surface_runoff_depth_updated_m']=self.surface_runoff
+                    
                 else:
                     leftover_vol_m3_sec= leftover_depth_change_m*basin_area_m2/3600
                     leftover_vol_ft3_sec=leftover_vol_m3_sec/(3.28**3)
@@ -209,10 +213,13 @@ class EnKF_wrap():
                     self.surface_runoff = self.surface_runoff_ratio*self.surface_runoff
                     # self._values['surface_runoff_depth_updated_m']=self.surface_runoff
                     self._values['surface_runoff_depth_updated_m']=self.surface_runoff
+                    print("surface_runoff_ratio",self._values['surface_runoff_depth_updated_m'])
 
                     ############################################################################################
                     #self._values['soil_reservoir_storage_deficit_updated_m'] = self.soil_storage_deficit_updated
-                    print("over estimaiton ratio",self.surface_runoff_ratio)
+                   
+                    print("***********over estimaiton ratio",self.surface_runoff_ratio)
+                    print("Observation BMI", self.z)
                     print("new value",self.surface_runoff)
                     print("CFE",self.x)
                     print("enkf",self.res)
@@ -242,7 +249,8 @@ class EnKF_wrap():
                     self.surface_runoff = self.surface_runoff_ratio*self.surface_runoff
 
                     self._values['surface_runoff_depth_updated_m']=self.surface_runoff
-                    print("under estimaiton ratio",self.surface_runoff_ratio)
+                    print("***********under estimaiton ratio",self.surface_runoff_ratio)
+                    print("Observation BMI", self.z)
                     print("under estimaiton",self.surface_runoff)
                     print("CFE",self.x)
                     print("enkf",self.res)
@@ -254,7 +262,6 @@ class EnKF_wrap():
             self.surface_runoff_ratio = 1
             # self.res=self.x
             print(" warning validity is zero")
-            
         
             #BMI: Model Control Function
 ####################################################################
@@ -321,6 +328,7 @@ class EnKF_wrap():
 
         self._values['x'] = self.x
         self._values['P'] = self.P
+        #self._values['F'] = self.F
         self._values['dt'] = self.dt
         self._values['z'] = self.z
         self._values['N'] = self.N
