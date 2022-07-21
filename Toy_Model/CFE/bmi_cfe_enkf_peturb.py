@@ -231,7 +231,7 @@ class BMI_CFE():
         
         # ________________________________________________
         # Nash cascade        
-        self.K_nash = 0.03
+        #self.K_nash = 0.03
 
         # ----------- The output is area normalized, this is needed to un-normalize it
         #                         mm->m                             km2 -> m2          hour->s    
@@ -251,7 +251,7 @@ class BMI_CFE():
     # __________________________________________________________________________________________________________
     # __________________________________________________________________________________________________________
     # BMI: Model Control Function
-    def update(self):
+    def update(self, verbose=False):
         self.cfe_model.run_cfe(self)
         self.peturbed_output()
         self.scale_output()
@@ -261,15 +261,16 @@ class BMI_CFE():
         #self.availible_soil_storage_m=self.soil_reservoir['storage_max_m'] * 0.667-self.soil_reservoir['storage_m']
         #self.soil_storage_avail=self.soil_reservoir['storage_max_m'] * 0.667-self.soil_reservoir['storage_m']
         self._values['soil_storage_avail_m']=self.soil_reservoir['storage_max_m'] * 0.667-self.soil_reservoir['storage_m']
-        print("peturbed flow", self._values['land_surface_water__runoff_depth'])
-        print("CFE_open_xxxxx_soil_reservoir_storage_deficit_m",self.soil_reservoir_storage_deficit_m)
+        if verbose:
+            print("peturbed flow", self._values['land_surface_water__runoff_depth'])
+            print("CFE_open_xxxxx_soil_reservoir_storage_deficit_m",self.soil_reservoir_storage_deficit_m)
         self._values['soil_reservoir_storage_deficit_out_m'] = self.soil_reservoir_storage_deficit_m
         self.soil_reservoir_storage_deficit_m=self._values['soil_reservoir_storage_deficit_m']
         # "self._values['land_surface_water__runoff_depth']
     # __________________________________________________________________________________________________________
     # __________________________________________________________________________________________________________
     # BMI: Model Control Function
-    def update_until(self, until, verbose=True):
+    def update_until(self, until, verbose=False):
         for i in range(self.current_time_step, until):
             self.cfe_model.run_cfe(self)
             self.peturbed_output()
