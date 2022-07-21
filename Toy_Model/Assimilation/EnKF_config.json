@@ -4,7 +4,7 @@
     "initial_obs":"1",
     "time_step_in_seconds":"3600",
     "state_transition_multiplier_matrix":"100",
-    "Number_of_ensembles":"7",
+    "Number_of_ensembles":"20",
     "max_state_var_change_soilResDef":"0.99",
     "basin_area_km2":84.21526,
     "soil_storage":0.667,
