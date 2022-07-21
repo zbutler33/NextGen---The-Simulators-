@@ -57,7 +57,7 @@ class BMI_CFE():
         # This is going to get long, 
         #     since the input variable names could come from any forcing...
         #------------------------------------------------------
-        self._var_name_units_map = {
+        self._var_name_units_map = {"storage_max_out_m":['storage_max_out_m','m'],
                                 "soil_reservoir_storage_deficit_out_m":['soil_reservoir_storage_deficit_out_m','m'],
             "soil_reservoir_storage_deficit_m":['soil_reservoir_storage_deficit_m','m'],
                                 "soil_storage_avail_m":['availible_soil_storage_m','m'],
@@ -265,6 +265,7 @@ class BMI_CFE():
             print("peturbed flow", self._values['land_surface_water__runoff_depth'])
             print("CFE_open_xxxxx_soil_reservoir_storage_deficit_m",self.soil_reservoir_storage_deficit_m)
         self._values['soil_reservoir_storage_deficit_out_m'] = self.soil_reservoir_storage_deficit_m
+        self._values['storage_max_out_m']=self.soil_reservoir['storage_max_m']# take storage_max_out_m to EnKF
         self.soil_reservoir_storage_deficit_m=self._values['soil_reservoir_storage_deficit_m']
         # "self._values['land_surface_water__runoff_depth']
     # __________________________________________________________________________________________________________
