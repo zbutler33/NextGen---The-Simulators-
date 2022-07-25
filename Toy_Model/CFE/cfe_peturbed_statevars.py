@@ -3,7 +3,8 @@ import numpy as np
 import pandas as pd
 
 """
-Summary:
+Summary
+--------
 This code is built on the original CFE model but with added peturbation and state variable updates for data assimilation.
 The updated state variables are "soil_reservoir_storage_deficit_m" and "surface_runoff_depth_m". 
 They are updated by multiplying a "time_state_var_change_soil" and or "time_state_var_change_runoff". 
@@ -16,19 +17,23 @@ The covariance and mean are needed to run the EnKF data assimilation method.
 
 There is no evapotranspiration in this model. This might cause unrealisitic results, but is ET is not needed to test the cahanges made here. 
 
-Contact:
+Contact
+--------
 Zach Butler. butlerz@oregonstate.edu
 Fitsume Teshome Wolkeba. fwolkeba@crimson.ua.edu  
 
-Inputs:
+Inputs
+--------
 "time_state_var_change_soil" and "time_state_var_change_runoff" from EnKF data assimilation.
 "self.number_of_ensemble" and "self.peturbation_factor" from config file.
 
-Outputs:
+Outputs
+--------
 "self.surface_runoff_m_ens" 7 outflows from peturbed. Get mean and covariance to feed into EnKF in framework.
 "soil_reservoir_storage_deficit_m" and "surface_runoff_depth_m" Updated state variable for final data assimilated streamflow. 
 
-References:
+References
+----------
 https://github.com/zbutler33/NextGen---The-Simulators- 
 
 """
@@ -377,7 +382,17 @@ class CFE():
             cfe_state.infiltration_depth_m = 0.0
             
         return
-                                          
+
+    # __________________________________________________________________________________________________________
+    def et_from_soil(self,cfe_state):
+        """
+            take AET from soil moisture storage, 
+            using Budyko type curve to limit PET if wilting<soilmoist<field_capacity
+        """
+        
+        '''
+        NO ET USED FOR THIS MODEL. TESTING DATA ASSIMILATION
+        '''                                          
             
     # __________________________________________________________________________________________________________
     def is_fabs_less_than_epsilon(self,a,epsilon):
