@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 import time
 import numpy as np
 import pandas as pd
@@ -5,60 +7,71 @@ import sys
 import json
 import usgs
 
-class BMI_USGS():
+
+class BMI_USGS:
+
     def __init__(self):
-        """Create a Bmi USGS data retrieval ready for initialization."""
+        """Create a USGS data retrieval  BMI  ready for initialization."""
+
         super(BMI_USGS, self).__init__()
         self._values = {}
-        self._var_loc = "node"
+        self._var_loc = 'node'
         self._var_grid_id = 0
         self._start_time = 0.0
-        self._end_time = np.finfo("d").max
-        
-        #----------------------------------------------
+        self._end_time = np.finfo('d').max
+
+        # ----------------------------------------------
         # Required, static attributes of the model
-        #----------------------------------------------
+        # ----------------------------------------------
+
         self._att_map = {
-            'model_name':         'USGS with a hole in it',
-            'version':            '1.0',
-            'author_name':        'Fitsume wolkeba',
-            'grid_type':          'scalar',
-            'time_units':         '1 hr' }
-    
-        #---------------------------------------------
+            'model_name': 'USGS data retriever BMI',
+            'version': '1.0',
+            'author_name': 'Fitsume wolkeba',
+            'grid_type': 'scalar',
+            }
+
+        # ---------------------------------------------
         # Input variable names (CSDMS standard names)
-        #---------------------------------------------
-        self._input_var_names = [
-            'sites','service', 'start','end']
-    
-        #---------------------------------------------
+        # ---------------------------------------------
+
+        self._input_var_names = ['sites', 'start', 'end']
+
+        # ---------------------------------------------
         # Output variable names (CSDMS standard names)
-        #---------------------------------------------
-        self._output_var_names = ['Flow','validity']
-        
-        #------------------------------------------------------
+        # ---------------------------------------------
+
+        self._output_var_names = ['Flow', 'validity']
+
+        # ------------------------------------------------------
         # Create a Python dictionary that maps CSDMS Standard Names to the model's internal variable names.
 
-        #------------------------------------------------------
-        self._var_name_units_map = {
-                                'Flow':['USGS__streamflow','cfs'],
-                                'validity':['missing_data_check','binary'],
-                                'sites':['sites','NA'],'service':['service','NA'],
-                                'start':['start','Day'],'end':['end','Day'],
-                          }
+        # ------------------------------------------------------
 
-    #__________________________________________________________________
-    #__________________________________________________________________
+        self._var_name_units_map = {
+            'Flow': ['USGS__streamflow', 'cfs'],
+            'validity': ['Missing_data_check', 'binary, 0=data and 1=there is data'],
+            'sites': ['sites', 'NA'],
+            'start': ['start', 'Day'],
+            'end': ['end', 'Day'],
+            }
+
+
+    # __________________________________________________________________
+    # __________________________________________________________________
     # BMI: Model Control Function
-    # 
+
+    
     def initialize(self, cfg_file=None, current_time_step=0):
-        #------------------------------------------------------------
-        # this is the bmi configuration file
+
+            # ------------------------------------------------------------
+            # this is the bmi configuration file
+
         self.cfg_file = cfg_file
 
-        self.current_time_step=current_time_step
+        self.current_time_step = current_time_step
 
-        # ----- Create some lookup tabels from the long variable names --------#
+            # ----- Create some lookup tabels from the long variable names --------#
         self._var_name_map_long_first = {long_name:self._var_name_units_map[long_name][0] for long_name in self._var_name_units_map.keys()}
         
         self._var_name_map_short_first = {self._var_name_units_map[long_name][0]:long_name for long_name in self._var_name_units_map.keys()}
@@ -67,31 +80,37 @@ class BMI_USGS():
         
         # -------------- Initalize all the variables --------------------------# 
         # -------------- so that they'll be picked up with the get functions --#
+        # -------------- Initalize all the variables --------------------------#
+        # -------------- so that they'll be picked up with the get functions --#
+
         for long_var_name in list(self._var_name_units_map.keys()):
+
             # ---------- All the variables are single values ------------------#
             # ---------- so just set to zero for now.        ------------------#
+
             self._values[long_var_name] = 0
-            setattr( self, self.get_var_name(long_var_name), 0 )
+            setattr(self, self.get_var_name(long_var_name), 0)
 
         ############################################################
         # ________________________________________________________ #
         # GET VALUES FROM CONFIGURATION FILE.                      #
-        self.config_from_json()                                    #
-        
+
+        self.config_from_json()  #
+
         # ________________________________________________
         # Time control if incase update until may be used
+
         self.timestep_h = 1
         self.timestep_d = self.timestep_h / 24.0
         self.current_time_step = 0
         self.current_time = self.current_time_step
-        
+
             # ________________________________________________
         # Initial value
-        sites = self.sites
-        service  =self.service      
-        start  =self.start          
-        end    =self.end 
-        
+
+        self.sites = self.sites
+        self.start = self.start
+        self.end = self.end
         
         # ________________________________________________
 
@@ -99,33 +118,48 @@ class BMI_USGS():
         # ________________________________________________________________ #
         # ________________________________________________________________ #
         # CREATE AN INSTANCE OF THE SIMPLE USGS MODEL #
+        
         self.usgs_model = usgs.USGS()
-        #print(self.end)
+
         # ________________________________________________________________ #
         # ________________________________________________________________ #
         ####################################################################
+        
+       
 
-        self.usgs_model.run_usgs(self) #running usgs model here. Makes output vars available
+        self.time_index = 0  # keep track of time index. starting a 0.
 
-        #keep track of time index. starting a 0. 
-        self.time_index = 0
         
     
     # __________________________________________________________________________________________________________
     # __________________________________________________________________________________________________________
     # BMI: Model Control Function
     def update(self):
-        #self.flow =  self.usgs_model.flow[self.time_index]
-        #self.validity =  self.usgs_model.validity[self.time_index]
-        self.time_index += 1 #adding time steps
-        #self.usgs_model.run_usgs(self)
-        #self._values["sites"]=self.sites
-        #print(self.flow,'-',self.validity)
+
+        # if values are set using set_value function
+
+        self._values['sites'] = self.sites
+        self._values['start'] = self.start
+        self._values['end'] = self.end
+
+        # run the model using data from config file or set values
+
+        self.usgs_model.run_usgs(self) 
+
+        # Add values to output variables
+
+        self._values['Flow'] = self.flow
+        self._values['validity'] = self.validity
+        self.time_index += 1  # adding time steps to track Framework time
+
+
         self.scale_output()
 
     # __________________________________________________________________________________________________________
     # __________________________________________________________________________________________________________
     # BMI: Model Control Function if update until may be used (not functional)
+
+
     def update_until(self, until):
         for i in range(self.current_time_step, until, self.time_step_size):
             self.usgs_model.run_usgs(self)
@@ -152,8 +186,8 @@ class BMI_USGS():
     # ________________________________________________
     def reset_usgs_stations(self):
         self.start             = 0
-        self.end       = 0
-        self.sites       = 0
+        self.end               = 0
+        self.sites             = 0
 
         return
     def finalize_flow(self, verbose=True):
@@ -165,9 +199,8 @@ class BMI_USGS():
         return
     def scale_output(self):
 
-        self._values['site'] = self.sites
+        self._values['sites'] = self.sites
         self._values['start'] = self.start
-        self._values['service'] = self.service
         self._values['end'] = self.end
         self._values['Flow'] = self.flow
         self._values['validity'] = self.validity
@@ -180,12 +213,11 @@ class BMI_USGS():
         # ___________________________________________________
         # MANDATORY CONFIGURATIONS
         self.sites                  = data_loaded['sites']
-        self.service           =data_loaded['service']
         self.start            = data_loaded['start']
         self.end          = data_loaded['end']
 
         # ___________________________________________________
-        # OPTIONAL CONFIGURATIONS
+
 
          
         return
