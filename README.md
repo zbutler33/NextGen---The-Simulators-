@@ -53,4 +53,7 @@ Name: 'Toymodel_V2.ipynb'
 		- enkf (EnKF methodology using cfe_peturbed and usgs)
 		- usgs (take in usgs streamflow data)
 
+Framework for testing forecast of CFE Assimilated using synthetic data - 'Toymodel_Synthetic'
+
+
  
