@@ -46,7 +46,7 @@ Name: 'bmi_cfe_enkf_peturb.py' which referencesCFE Model, 'cfe_peturbed_statevar
 Framework - 'Toy_Model'
 Name: 'Toymodel_RealData.ipynb'
 	- Loads each CFE, EnKF, and USGS BMI
-		- cfe_open (original CFE, nothing changed, bmi_cfe_open.py and cfe.py)
+		- cfe_open (original CFE, nothing changed, bmi_cfe_enkf_peturb.py and cfe.py)
 			- Used for model comparison to see if EnKF and CFE Analysis improves streamflow
 		- cfe_peturbed (peturbed CFE needed to run EnKF)
 		- cfe_analysis (Takes in EnKF data for final assimilated streamflow) 
