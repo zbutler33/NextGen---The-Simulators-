@@ -1,7 +1,9 @@
 # NextGen---The-Simulators-
 Data Assimilation of USGS Data into the NextGen NWM framework 
 The Data retriver BMI used nwis python library from https://github.com/USGS-python/dataretrieval
-The The ensemble Kalman filter (EnKF) data assimialtion is based on a FilterPy library. FilterPy is a Python library that implements a number of Bayesian filters. """Copyright 2015 Roger R Labbe Jr. FilterPy library.http://github.com/rlabbe/filterpy Documentation at: https://filterpy.readthedocs.org Supporting book at: https://github.com/rlabbe/Kalman-and-Bayesian-Filters-in-Python.
+The The ensemble Kalman filter (EnKF) data assimialtion is based on a FilterPy library. FilterPy is a Python library that implements a number of Bayesian filters. 
+"""Copyright 2015 Roger R Labbe Jr. FilterPy library.http://github.com/rlabbe/filterpy 
+Documentation at: https://filterpy.readthedocs.org Supporting book at: https://github.com/rlabbe/Kalman-and-Bayesian-Filters-in-Python.
 
 Workflow: Use Toy model with fake forcing and catchment data to test DA methodology. Developed 4 BMI's for the Toy Model
 - Used 'Toy_Model' Folder
@@ -9,7 +11,7 @@ Workflow: Use Toy model with fake forcing and catchment data to test DA methodol
 
 
 1) CFE Peturbed - 'Toy_Model/CFE'
-Name: 'bmi_cfe_enkf_peturb.py' which references originial CFE Model, 'cfe_statevars.py' that is able to edit state variables ,'runoff_queue_m_per_timestep' and 'soil_reservoir_storage_deficit_m'
+Name: 'bmi_cfe_enkf_peturb.py' which references originial CFE Model, 'cfe_peturbed_statevars.py' that is able to edit state variables ,'runoff_queue_m_per_timestep' and 'soil_reservoir_storage_deficit_m'
 	- BMI references 'config_cfe_peturb_model_CT_calibration.json', which defines catchment characteristics, # of ensembles, and peturbation factor
 		- 'cat' file references fake forcing data, 'Toy_Model/Forcing/forcing_data_May17.csv'
 	- BMI runs over 7 ensembles with a uniform random distribution of the outflow based on a peturbation factor of 0.75 of the outflow
@@ -36,7 +38,7 @@ Name: 'Bmi_da_ENKF_forSBMI.py' which references 'EnKF.py'
 		- Maximum soil storage used to make sure edited state variables are realistic
 
 4) Update State Variable in CFE Analysis - 'Toy_Model/CFE'
-Name: 'bmi_cfe_enkf_peturb.py' which referencesCFE Model, 'cfe_statevars.py' that edits state variables ,'runoff_queue_m_per_timestep' and 'soil_reservoir_storage_deficit_m'
+Name: 'bmi_cfe_enkf_peturb.py' which referencesCFE Model, 'cfe_peturbed_statevars.py' that edits state variables ,'runoff_queue_m_per_timestep' and 'soil_reservoir_storage_deficit_m'
 	- BMI references 'config_cfe_peturb_model_CT_calibration.json', which defines catchment characteristics
 		- 'cat' file references fake forcing data, 'Toy_Model/Forcing/forcing_data_May17.csv'
 	- Overall, same BMI as CFE Peturbed, just referencing it differnt in the framework
@@ -44,7 +46,7 @@ Name: 'bmi_cfe_enkf_peturb.py' which referencesCFE Model, 'cfe_statevars.py' tha
 Framework - 'Toy_Model'
 Name: 'Toymodel_V2.ipynb'
 	- Loads each CFE, EnKF, and USGS BMI
-		- cfe_open (original CFE, nothing changed)
+		- cfe_open (original CFE, nothing changed, bmi_cfe_open.py and cfe.py)
 			- Used for model comparison to see if EnKF and CFE Analysis improves streamflow
 		- cfe_peturbed (peturbed CFE needed to run EnKF)
 		- cfe_analysis (Takes in EnKF data for final assimilated streamflow) 

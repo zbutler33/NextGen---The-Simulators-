@@ -4,8 +4,7 @@ import pandas as pd
 import sys
 import json
 import matplotlib.pyplot as plt
-#import cfe
-import cfe_statevars
+import cfe_peturbed_statevars
 
 class BMI_CFE():
     def __init__(self):
@@ -29,6 +28,7 @@ class BMI_CFE():
             'model_name':         'Conceptual Functional Equivalent (CFE)',
             'version':            '1.0',
             'author_name':        'Jonathan Martin Frame',
+            'Update_authors_name': 'Fitsume T. Wolkeba, Kenneth O. Ekpetere, Motasem S. Abualqumboz, and Zachariah J. Butler',
             'grid_type':          'scalar',
             'time_step_size':      1, 
             'time_units':         '1 hour' }
@@ -36,9 +36,16 @@ class BMI_CFE():
         #---------------------------------------------
         # Input variable names (CSDMS standard names)
         #---------------------------------------------
+        # New inputs for updating state variable changes
+        """
+        There are new inputs for updating state varibales changes
+        - Adding the variables themselves (soil_storage_avail_m','soil_reservoir_storage_deficit_m','surface_runoff_depth_m')
+        - Adding the multiplier factor to each state variables calculation ('state_var_change_soil','state_var_change_runoff')
+            - These are edited in cfe_statevars.py in lines 69-71 and 233 respectively 
+        """     
         self._input_var_names = [
-            'atmosphere_water__time_integral_of_precipitation_mass_flux',
-            'water_potential_evaporation_flux',   'soil_storage_avail_m','soil_reservoir_storage_deficit_m','surface_runoff_depth_m',
+            'atmosphere_water__time_integral_of_precipitation_mass_flux', 'water_potential_evaporation_flux',
+            'soil_storage_avail_m','soil_reservoir_storage_deficit_m','surface_runoff_depth_m',
             'state_var_change_soil','state_var_change_runoff']
     
         #---------------------------------------------
@@ -59,15 +66,12 @@ class BMI_CFE():
         #------------------------------------------------------
         self._var_name_units_map = {"storage_max_out_m":['storage_max_out_m','m'],
                                 "soil_reservoir_storage_deficit_out_m":['soil_reservoir_storage_deficit_out_m','m'],
-            "soil_reservoir_storage_deficit_m":['soil_reservoir_storage_deficit_m','m'],
+                                "soil_reservoir_storage_deficit_m":['soil_reservoir_storage_deficit_m','m'],
                                 "soil_storage_avail_m":['availible_soil_storage_m','m'],
-                                'land_surface_water__runoff_volume_flux':['streamflow_cfs','ft3 s-1'], #Wrong unit, 
+                                'land_surface_water__runoff_volume_flux':['streamflow_cfs','ft3 s-1'], 
                                 'land_surface_water__runoff_depth':['total_discharge','ft3 s-1'],
-                                #'land_surface_water__runoff_volume_flux':['streamflow_cmh','m3 h-1'],
-                                #'land_surface_water__runoff_depth':['total_discharge','m h-1'],
                                 #--------------   Dynamic inputs --------------------------------
-                                'atmosphere_water__time_integral_of_precipitation_mass_flux':['timestep_rainfall_input_m','kg m-2'], #wrong unit
-                                #'atmosphere_water__time_integral_of_precipitation_mass_flux':['timestep_rainfall_input_m','m h-1'],
+                                'atmosphere_water__time_integral_of_precipitation_mass_flux':['timestep_rainfall_input_m','kg m-2'],
                                 'water_potential_evaporation_flux':['potential_et_m_per_s','m s-1'],
                                 'state_var_change_soil':['time_state_var_change_soil','%'],
                                 'state_var_change_runoff':['time_state_var_change_runoff','%'],
@@ -134,9 +138,8 @@ class BMI_CFE():
         # Inputs
         self.timestep_rainfall_input_m = 0
         self.potential_et_m_per_s      = 0
-        self.time_state_var_change_soil = 1 #Initial value of 1 to start with no change in state variable (100%)
+        self.time_state_var_change_soil = 1 #Initial value of 1 (100%) for state variable changes to start with no change 
         self.time_state_var_change_runoff = 1
-        
         
         # ________________________________________________
         # calculated flux variables
@@ -240,34 +243,34 @@ class BMI_CFE():
         ####################################################################
         # ________________________________________________________________ #
         # ________________________________________________________________ #
-        # CREATE AN INSTANCE OF THE CONCEPTUAL FUNCTIONAL EQUIVALENT MODEL #
-        #self.cfe_model = cfe.CFE()
-        self.cfe_model = cfe_statevars.CFE()
+        # CREATE AN INSTANCE OF THE CONCEPTUAL FUNCTIONAL EQUIVALENT MODEL STATE VARIABLE CHANGES #
+        self.cfe_model = cfe_peturbed_statevars.CFE()
         # ________________________________________________________________ #
         # ________________________________________________________________ #
         ####################################################################
         
-    
     # __________________________________________________________________________________________________________
     # __________________________________________________________________________________________________________
-    # BMI: Model Control Function
+    # BMI: Model Control Function. CFE Peturbed Update
     def update(self, verbose=False):
         self.cfe_model.run_cfe(self)
         self.peturbed_output()
         self.scale_output()
         
-        
-        # todo: fix this make it a good bmi 
-        #self.availible_soil_storage_m=self.soil_reservoir['storage_max_m'] * 0.667-self.soil_reservoir['storage_m']
-        #self.soil_storage_avail=self.soil_reservoir['storage_max_m'] * 0.667-self.soil_reservoir['storage_m']
-        self._values['soil_storage_avail_m']=self.soil_reservoir['storage_max_m'] * 0.667-self.soil_reservoir['storage_m']
-        if verbose:
-            print("peturbed flow", self._values['land_surface_water__runoff_depth'])
-            print("CFE_open_xxxxx_soil_reservoir_storage_deficit_m",self.soil_reservoir_storage_deficit_m)
-        self._values['soil_reservoir_storage_deficit_out_m'] = self.soil_reservoir_storage_deficit_m
-        self._values['storage_max_out_m']=self.soil_reservoir['storage_max_m']# take storage_max_out_m to EnKF
+        ########################################################################
+        # Update state variables for EnKF data assimilation and peturbed
+        # Soil storage available based on maximum possible (line 224)
+        self._values['soil_storage_avail_m']=self.soil_reservoir['storage_max_m']*0.667 - self.soil_reservoir['storage_m'] 
+        # Quality check of values
+        # if verbose:
+        #     print("Peturbed flow", self._values['land_surface_water__runoff_depth'])
+        #     print("CFE_open_soil_reservoir_storage_deficit_m",self.soil_reservoir_storage_deficit_m)
+
+        self._values['soil_reservoir_storage_deficit_out_m'] = self.soil_reservoir_storage_deficit_m 
+        self._values['storage_max_out_m']=self.soil_reservoir['storage_max_m'] #Maximum amount of soil storage available to be transfered into EnKF Data Assimimilation
         self.soil_reservoir_storage_deficit_m=self._values['soil_reservoir_storage_deficit_m']
-        # "self._values['land_surface_water__runoff_depth']
+        ########################################################################
+    
     # __________________________________________________________________________________________________________
     # __________________________________________________________________________________________________________
     # BMI: Model Control Function
@@ -475,17 +478,16 @@ class BMI_CFE():
                 plt.show()
                 plt.close()
     
-    #------------------------------------------------------------
-    # ZB, 6/24. Adding peturbation to CFE based on random uniform distribution     
-    #--------------------------------------------------------
+    #-------------------------------------------------------------------
+    # ZB, 6/24. Adding peturbation to CFE based on random uniform distribution
+    # Variables defined in config file. 7 ensembles and faactor is 0.75     
+    #-------------------------------------------------------------------
     def peturbed_output(self):
         self.surface_runoff_m_ens = []
         for n in range(self.number_of_ensemble):
-            perturb_percent = self.peturbation_factor
-            Perturbation_for_DA =  np.random.uniform(1-perturb_percent, 1+perturb_percent)
-            self.surface_runoff_m_ens.append(self.total_discharge * Perturbation_for_DA) #creating list
-            #print(self.surface_runoff_m_ens)
-
+            Perturbation_for_DA =  np.random.uniform(1-self.peturbation_factor, 1+self.peturbation_factor)
+            self.surface_runoff_m_ens.append(self.total_discharge * Perturbation_for_DA)
+           
     #------------------------------------------------------------ 
     def scale_output(self):
             
@@ -493,9 +495,7 @@ class BMI_CFE():
         self._values['land_surface_water__runoff_depth'] = self.surface_runoff_m/1000
         self._values['land_surface_water__runoff_depth_ens'] = list(np.array(self.surface_runoff_m_ens)/1000)
         self.streamflow_cms = self._values['land_surface_water__runoff_depth'] * self.output_factor_cms
-
         self._values['land_surface_water__runoff_volume_flux'] = self.streamflow_cms * (1/35.314)
-
         self._values["DIRECT_RUNOFF"] = self.surface_runoff_depth_m
         self._values["GIUH_RUNOFF"] = self.flux_giuh_runoff_m
         self._values["NASH_LATERAL_RUNOFF"] = self.flux_nash_lateral_runoff_m

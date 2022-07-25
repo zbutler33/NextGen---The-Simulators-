@@ -2,6 +2,25 @@ import time
 import numpy as np
 import pandas as pd
 
+"""
+Summarize
+
+ This will edit the runoff to see how changes in it will affect streamflow
+        To start, we will create a list of %'s to multiple the surface_runoff_depth_m by
+        - Keep track of changes in streamflow to see how this variable will affect
+        - Smaller percent change (less runoff), makes the flow lower
+        - Need to develop logic (if) statement based on how final DA runoff is 
+
+contact 
+
+inputs
+
+outputs
+
+refences
+
+"""
+
 class CFE():
     def __init__(self):
         super(CFE, self).__init__()
@@ -33,26 +52,17 @@ class CFE():
         - Need to develop logic (if) statement based on how final DA runoff is 
 
         """     
-        
+        #_________________________________________________
+        # Updating soil_reservoir_storage_deficit_m based on state variable changed from EnKF data assimilation
         cfe_state.soil_reservoir_storage_deficit_m = (cfe_state.soil_params['smcmax'] * \
                                                  cfe_state.soil_params['D'] - \
-                                                 cfe_state.soil_reservoir['storage_m'] * (cfe_state.time_state_var_change_soil))
-                                                
-                                        
+                                                 cfe_state.soil_reservoir['storage_m'] * (cfe_state.time_state_var_change_soil))         
                                                  
         #_________________________________________________
         # soil reservoir storage cannot be negative 
         if cfe_state.soil_reservoir_storage_deficit_m < 0:
             cfe_state.soil_reservoir_storage_deficit_m = 0
 
-        # soil reservoir storage cannot go above certain limit
-        #if cfe_state.soil_reservoir_storage_deficit_m == (cfe_state.soil_reservoir_storage_deficit_m * 2):
-        #    cfe_state.soil_reservoir_storage_deficit_m = (cfe_state.time_state_var_change_soil *  cfe_state.soil_reservoir_storage_deficit_m)
-
-        #print(cfe_state.soil_reservoir_storage_deficit_m)
-
-        
-        
         # ________________________________________________
         # SUBROUTINE
         # Calculates the value for surface_runoff_depth_m
@@ -64,11 +74,8 @@ class CFE():
         #cfe_state.vol_et_from_soil += cfe_state.actual_et_m_per_timestep
         cfe_state.volout += cfe_state.actual_et_m_per_timestep
 
-
-        
         # ________________________________________________
         if cfe_state.soil_reservoir_storage_deficit_m < cfe_state.infiltration_depth_m:
-            # put won't fit back into runoff
             cfe_state.surface_runoff_depth_m += (cfe_state.infiltration_depth_m - cfe_state.soil_reservoir_storage_deficit_m)
             cfe_state.infiltration_depth_m = cfe_state.soil_reservoir_storage_deficit_m
             cfe_state.soil_reservoir['storage_m'] = cfe_state.soil_reservoir['storage_max_m']
@@ -122,8 +129,7 @@ class CFE():
         cfe_state.soil_reservoir['storage_m'] -= cfe_state.flux_lat_m
         cfe_state.vol_soil_to_lat_flow        += cfe_state.flux_lat_m  #TODO add this to nash cascade as input
         cfe_state.volout                       = cfe_state.volout + cfe_state.flux_lat_m;
-
-            
+    
         # ________________________________________________
         # SUBROUTINE
         # primary_flux, secondary_flux = f(reservoir)
@@ -209,31 +215,16 @@ class CFE():
                 runoff_queue_m_per_timestep
         """
 
-#        cfe_state.runoff_queue_m_per_timestep[-1] = 0
-        #-----------------------------------------------------
-        # Chane the state variable, surface_runoff_depth_m
-        """
-
-        This will edit the runoff to see how changes in it will affect streamflow
-        To start, we will create a list of %'s to multiple the surface_runoff_depth_m by
-        - Keep track of changes in streamflow to see how this variable will affect
-        - Smaller percent change (less runoff), makes the flow lower
-        - Need to develop logic (if) statement based on how final DA runoff is 
-
-        """
+        #_________________________________________________
+        # Updating surface_runoff_depth_m based on state variable changed from EnKF data assimilation
         for i in range(cfe_state.num_giuh_ordinates):
 
-            #cfe_state.runoff_queue_m_per_timestep[i] += cfe_state.giuh_ordinates[i] * (cfe_state.surface_runoff_depth_m) #multiply by ##% for state var change
             cfe_state.runoff_queue_m_per_timestep[i] += cfe_state.giuh_ordinates[i] * (cfe_state.surface_runoff_depth_m * cfe_state.time_state_var_change_runoff)
-            # percentage is the change in total. 12 USGS, 10 CFE, DA 11. 1 cfs change (3600/2) = 1800 / (10*3600) =  0.05% so 1.05% increase
-            # divide by 2 becuase assuming linear change in total mass runoff discrepency between time steps
-            #print("state_var_change_runoff", cfe_state.time_state_var_change_runoff)
 
         cfe_state.flux_giuh_runoff_m = cfe_state.runoff_queue_m_per_timestep[0]
         
         # __________________________________________________________________
         # shift all the entries in preperation for the next timestep
-        
         for i in range(1, cfe_state.num_giuh_ordinates):  
             
             cfe_state.runoff_queue_m_per_timestep[i-1] = cfe_state.runoff_queue_m_per_timestep[i]
@@ -242,7 +233,6 @@ class CFE():
 
         return
     
-
     # __________________________________________________________________________________________________________
     def et_from_rainfall(self,cfe_state):
         
@@ -383,7 +373,7 @@ class CFE():
             take AET from soil moisture storage, 
             using Budyko type curve to limit PET if wilting<soilmoist<field_capacity
         """
-        #cfe_state.actual_et_m_per_timestep = int(300)
+        
         '''
         If we have no rainfall, then we will set ET to a constant value for now (not realistic) - synthetic simulation
         If we have rainfall, then we want no ET for this example
