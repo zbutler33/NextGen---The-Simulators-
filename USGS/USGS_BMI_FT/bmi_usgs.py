@@ -125,7 +125,9 @@ class BMI_USGS:
         # ________________________________________________________________ #
         ####################################################################
         
-       
+       # run the model using data from config file or set values
+
+        self.usgs_model.run_usgs(self) 
 
         self.time_index = 0  # keep track of time index. starting a 0.
 
@@ -138,17 +140,15 @@ class BMI_USGS:
 
         # if values are set using set_value function
 
-        self._values['sites'] = self.sites
-        self._values['start'] = self.start
-        self._values['end'] = self.end
+        # self._values['sites'] = self.sites
+        # self._values['start'] = self.start
+        # self._values['end'] = self.end
 
-        # run the model using data from config file or set values
+        
 
-        self.usgs_model.run_usgs(self) 
+        # # Add values to output variables
 
-        # Add values to output variables
-
-        self._values['Flow'] = self.flow
+        # self._values['Flow'] = self.flow
         self._values['validity'] = self.validity
         self.time_index += 1  # adding time steps to track Framework time
 
