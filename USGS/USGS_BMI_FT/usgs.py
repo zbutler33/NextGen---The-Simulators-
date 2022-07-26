@@ -76,8 +76,8 @@ class USGS:
 
         # Output results to csv file
 
-        site_avg.to_csv('USGS_' + str(sites) + '_obs_streamflow.csv',
-                        index=False)
+        #site_avg.to_csv('USGS_' + str(sites) + '_obs_streamflow.csv',
+        #                index=False)
 
         # to check if the code runs on the framework
 

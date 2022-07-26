@@ -41,7 +41,7 @@ class BMI_CFE():
         There are new inputs for updating state varibales changes
         - Adding the variables themselves (soil_storage_avail_m','soil_reservoir_storage_deficit_m','surface_runoff_depth_m')
         - Adding the multiplier factor to each state variables calculation ('state_var_change_soil','state_var_change_runoff')
-            - These are edited in cfe_statevars.py in lines 69-71 and 233 respectively 
+            - These are edited in cfe_statevars.py in lines 27-29 and 233 respectively 
         """     
         self._input_var_names = [
             'atmosphere_water__time_integral_of_precipitation_mass_flux', 'water_potential_evaporation_flux',
