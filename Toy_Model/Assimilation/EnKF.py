@@ -1,21 +1,40 @@
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
-# pylint: disable=invalid-name, too-many-arguments, too-many-instance-attributes
-# pylint: disable=attribute-defined-outside-init
 
-"""Copyright 2015 Roger R Labbe Jr.
-FilterPy library.
-http://github.com/rlabbe/filterpy
-Documentation at:
-https://filterpy.readthedocs.org
-Supporting book at:
-https://github.com/rlabbe/Kalman-and-Bayesian-Filters-in-Python
-This is licensed under an MIT license. See the readme.MD file
-for more information.
 """
+    This code prepares the FilterPy Ensemble Kalman filter to be used in BMI. 
+     
+    The EnKF code uses the already exiting python library from http://github.com/rlabbe/filterpy. 
+    
+    The original code is modified to incorporate CFE model. The modification is where state variables are updated. 
+    The state variables will be updated in CFE i.e., outside the EnKF code, making it different from the original code.
+        
+    contact
+    ----------
+    fwolkeba@crimson.ua.edu
+    
+    Required inputs
+    ----------
+    x: mean from perturbed CFE model as an array
+    P: covariance from perturbed CFE model as matrix
+    z: Observation from USGS as an array
+    h(x): observation function just returns the observation
+    f(x): state transition function, returns the mean input as is without transition because the state variable update will be done on CFE model
+    
 
+    outputs
+    ----------
+    X_prioir: prediction form EnKF.
+    x_post: updated prediction, using USGS data.
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+    References
+    ----------
+    http://github.com/rlabbe/filterpy
+
+    """
+
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
 
 from copy import deepcopy
 import numpy as np
@@ -25,93 +44,82 @@ from filterpy.common import pretty_str, outer_product_sum
 import pandas as pd
 pd.options.mode.chained_assignment = None
 
-class enkf():
+class enkf:
+
     def __init__(self):
         super(enkf, self).__init__()
-    def run_enkf(self,e):
-        x=e.x
-        P=e.P
-        z=e.z
-        dim_z=e.dim_z
-        dim_x=e.dim_x
-        dt=e.dt
-        N=e.N
-        F=e.F
+
+    def run_enkf(self, e):
+        x = e.x  # mean from CFE perturbed
+        P = e.P  # Covarince from CFE perturbed
+        z = e.z  # Observation from CFE perturbed
+        dim_z = e.dim_z
+        dim_x = e.dim_x
+        dt = e.dt  # time step in seconds, from Config file
+        N = e.N  # Number of Ensembles
+        F = e.F  # value to multiply the mean from CFE perturbed, used as required, initially set to 1
+
+        # The measurnment function, just one for now multiple measurnments can be added, returns the USGS flow measurnemnt.
+
         def hx(x):
             return np.array(x[0])
-        #print("np.array(x[0])", np.array(x[0]))
-        # state transition matrix function dot product of x and the % of change
+
         def fx(x, dt):
             return np.dot(F, x)
-        #print("np.dot(F, x)", np.dot(F, x))
-        #start update and predict using EnKF
 
-        assimilaiton = EnsembleKalmanFilter(x=e.x, P=e.P, dim_z=e.dim_z,dt=e.dt, N=e.N,hx=hx, fx=fx)
-        start=assimilaiton.start(x,P)
-        predic=assimilaiton.predict()
-        # print(predic.x_prior)
-        update=assimilaiton.update_with_obs(z)
-        #print("Obs EnKF Code", z)
-        # print('z',z)
-        e.x_post=update
-        e.x_prior=predic
-        e.res=assimilaiton.x
-        
-        #print("!!!! EnKF Result", e.res)
-        #print("CFE Input from EnKF code", x)
-        #print("e.F", e.F)
+        # Start update and predict using EnKF
+
+        assimilaiton = EnsembleKalmanFilter(
+            x=e.x,
+            P=e.P,
+            dim_z=e.dim_z,
+            dt=e.dt,
+            N=e.N,
+            hx=hx,
+            fx=fx,
+            )
+
+        # Initializes the filter with the specified mean and covariance
+
+        start = assimilaiton.start(x, P)
+
+        # Make predictions of the next value
+
+        predic = assimilaiton.predict()
+
+        # Update prediction using USGS observation
+
+        update = assimilaiton.update_with_obs(z)
+
+        e.x_post = update  # set updated values to the EnKF class
+        e.x_prior = predic  # set predicted values to the EnKF class
+        e.res = assimilaiton.x  # The estimated flow from EnKF
+
         # change based on lookup
-        if e.x==0:
-            e.factor=1
-        if e.z==None:
-            e.factor=1
+
+        if e.x == 0:
+            e.factor = 1
+        if e.z == None:
+            e.factor = 1
         else:
-            e.factor=e.res//e.x 
-            
-        #
+            e.factor = e.res // e.x
 
-        
-        
-        #
-        
-        
-        
-        
-
-        
-        
-
-        
-            
-            # factor= enkf estimation / CFE simulation==== from EnKF OK!
-            
-            # look up table (state var vs Q) ===== from CFE OK!
-            
-            # take factor (enkf) and get state var change(CFE) OK!
-            
-            # take state var change generate meand and cov of pert. (CFE perturb)
-            
-            # EnKF (new mean and cov from CFE pertu.)
-            
-            # CFE analysis
-            
-            
-            # if value error
-        # print("x_post",update)
-        # print("x",e.x)
-        # updated.append[update]
-        
-        # print("x_prior",predic)
-        # print(predicted)
-
-        # Enkf=assimilation.x[0]
-        # print(x[0])
-        # print(assimilaiton.x_post)
-        # factor=e.prioir//e.prioir
-        # print(factor)
-        # e.post=
-        return       
-
+        return
+    
+    """
+    
+    The original EnKF code from FilterPy code as is-->
+    
+    Copyright 2015 Roger R Labbe Jr.
+    FilterPy library.
+    http://github.com/rlabbe/filterpy
+    Documentation at:
+    https://filterpy.readthedocs.org
+    Supporting book at:
+    https://github.com/rlabbe/Kalman-and-Bayesian-Filters-in-Python
+    This is licensed under an MIT license. See the readme.MD file
+    for more information.
+    """
 class EnsembleKalmanFilter():
     """
     This implements the ensemble Kalman filter (EnKF). The EnKF uses
@@ -197,16 +205,13 @@ class EnsembleKalmanFilter():
             z = read_sensor()
             f.predict()
             f.update(np.asarray([z]))
-    See my book Kalman and Bayesian Filters in Python
+    See the authors book Kalman and Bayesian Filters in Python
     https://github.com/rlabbe/Kalman-and-Bayesian-Filters-in-Python
     References
     ----------
     - [1] John L Crassidis and John L. Junkins. "Optimal Estimation of
       Dynamic Systems. CRC Press, second edition. 2012. pp, 257-9.
     """
-    # def __init__(self):
-    
-
     def __init__(self, x, P, dim_z, dt, N, hx, fx):
         if dim_z <= 0:
             raise ValueError('dim_z must be greater than zero')
@@ -237,7 +242,6 @@ class EnsembleKalmanFilter():
         self._mean_z = zeros(dim_z)
 
     def start(self, x, P):
-    #def initialize(self, x, P):
         """
         Initializes the filter with the specified mean and
         covariance. Only need to call this if you are using the filter
@@ -264,9 +268,9 @@ class EnsembleKalmanFilter():
         # these will always be a copy of x,P after update() is called
         self.x_post = self.x.copy()
         self.P_post = self.P.copy()
-        #print("EnKF Code CFE Model", self.x)
+        
 
-    # def update():
+
     def update_with_obs(self, z, R=None):
         """
         Add a new measurement (z) to the kalman filter. If z is None, nothing
@@ -284,7 +288,7 @@ class EnsembleKalmanFilter():
             self.z = array([[None]*self.dim_z]).T
             self.x_post = self.x.copy() # this copy
             self.P_post = self.P.copy()
-            return print("check123")
+            return 
 
         if R is None:
             R = self.R
@@ -294,7 +298,7 @@ class EnsembleKalmanFilter():
         N = self.N
         dim_z = len(z)
         sigmas_h = zeros((N, dim_z))
-        #print('check',self.hx(self.sigmas))
+        
         # transform sigma points into measurement space
         for i in range(N):
             sigmas_h[i] = self.hx(self.sigmas[i])
@@ -321,7 +325,7 @@ class EnsembleKalmanFilter():
         self.z = deepcopy(z)
         self.x_post = self.x.copy()
         self.P_post = self.P.copy()
-        print("EnKF Code predicted, X Post",self.x_post)
+        
         
         # return self.x.copy()
     def predict(self):
@@ -330,7 +334,7 @@ class EnsembleKalmanFilter():
         N = self.N
         for i, s in enumerate(self.sigmas):
             self.sigmas[i] = self.fx(s, self.dt)
-            #print("self.sigmas[i]",self.sigmas[i])
+            
 
         e = multivariate_normal(self._mean, self.Q, N)
         self.sigmas += e
@@ -343,8 +347,7 @@ class EnsembleKalmanFilter():
         self.P_prior = np.copy(self.P)
         
         # return transition matrix to update the state variable with
-        # 
-        # print("prior",self.x)
+  
        
     def __repr__(self):
         return '\n'.join([

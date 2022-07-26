@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 import time
 import numpy as np
 import pandas as pd
@@ -5,79 +7,119 @@ import sys
 import json
 import matplotlib.pyplot as plt
 import EnKF
-# rename as enkf_cfe_bmi
-class EnKF_wrap():
+
+
+
+class EnKF_wrap:
+
     def __init__(self):
-        # super(EnKF_wrap, self).__init__()
-        # from code
-        #end###############
         """Create a Bmi EnKF data retrieval ready for initialization."""
         super(EnKF_wrap, self).__init__()
         self._values = {}
-        self._var_loc = "node"
+        self._var_loc = 'node'
         self._var_grid_id = 0
         self._start_time = 0.0
-        self._end_time = np.finfo("d").max
-        
-        #----------------------------------------------
+        self._end_time = np.finfo('d').max
+
+        # ----------------------------------------------
         # Required, static attributes of the model
-        #----------------------------------------------
+        # ----------------------------------------------
+
         self._att_map = {
-            'model_name':         'ENKF BMI',
-            'version':            '1.0',
-            'author_name':        '',
-            'grid_type':          'scalar',
-            'time_units':         '1 hr' }
-    
-        #---------------------------------------------
+            'model_name': 'ENKF BMI',
+            'version': '1.0',
+            'author_name': '',
+            'grid_type': 'scalar',
+            'time_units': '1 hr',
+            }
+
+        # ---------------------------------------------
         # Input variable names (CSDMS standard names)
-        #---------------------------------------------
+        # ---------------------------------------------
+
         self._input_var_names = [
-            'x', 'P','z','F', 'dt','N','validity','basin_area_km2','max_state_var_change_soilResDef',
-            'soil_storage_avail_m','soil_reservoir_storage_deficit_m','surface_runoff_depth_m','storage_max_m']
-    
-        #---------------------------------------------
+            'x',
+            'P',
+            'z',
+            'F',
+            'dt',
+            'N',
+            'validity',
+            'basin_area_km2',
+            'max_state_var_change_soilResDef',
+            'soil_storage_avail_m',
+            'soil_reservoir_storage_deficit_m',
+            'surface_runoff_depth_m',
+            'storage_max_m',
+            ]
+
+        # ---------------------------------------------
         # Output variable names (CSDMS standard names)
-        #---------------------------------------------
-        self._output_var_names = ['factor','x_prior','x_post','enkf','factor_runoff','factor_soil_res_def','surface_runoff_ratio','surface_runoff_depth_updated_m','soil_reservoir_storage_deficit_updated_m','soil_storage_avail_updated_m']
-        
-        #------------------------------------------------------
+        # ---------------------------------------------
+
+        self._output_var_names = [
+            'x_prior',
+            'x_post',
+            'enkf',
+            'surface_runoff_ratio',
+            'surface_runoff_depth_updated_m',
+            'soil_reservoir_storage_deficit_updated_m',
+            'soil_storage_avail_updated_m',
+            ]
+
+        # ------------------------------------------------------
         # Create a Python dictionary that maps CSDMS Standard Names to the model's internal variable names.
+        # ------------------------------------------------------
 
-        #------------------------------------------------------
-        self._var_name_units_map = {"soil_storage_avail_updated_m":['soil_storage_avail_updated_m','m'],
-                                    "storage_max_m":['storage_max_m','m'],
-                                    "validity":['validity','NA'],
-                                    "soil_reservoir_storage_deficit_updated_m":['soil_reservoir_storage_deficit_updated_m','m'],
-                                    "soil_reservoir_storage_deficit_m":['soil_reservoir_storage_deficit_m','m'],
-                                    "surface_runoff_depth_updated_m": ['surface_runoff_depth_updated_m', 'm'],
-                                    "surface_runoff_depth_m": ['surface_runoff_depth_m', 'm'],
-                                    "soil_storage_avail_m":['availible_soil_storage_m','m'],"soil_storage_avail_updated_m":['soil_storage_avail_updated_m','m'],
-                                    "basin_area_km2":['basin_area_km2','km2'],
-                                    "surface_runoff_ratio":['surface_runoff_ratio','%'],                                   
-                                    'max_state_var_change_soilResDef':['depth_of_water','m'],
-                                    'F':['percent','%'],'enkf':['enkf_flow','cfs'],
-                                    'factor_runoff':['percent','%'],'factor_soil_res_def':['percent','%'],
-                                'x_prior':['Qbefore_enkf_update','cfs'],'x_post':['Qafter_enkf_update','cfs'],
-                                'x':['mean','cfs'],'z':['obs','cfs'],'factor':['percent','%'],
-                                'P':['covariance','NA'],'dt':['time_step','hour'],
-                                    'N':['Number_of_ensembles','Day'],
-                                    'hx':['observation_function','NA'], 
-                                    'fx':['state_transition_funciton','NA']
-                          }
+        self._var_name_units_map = {
+            'soil_storage_avail_updated_m': ['soil_storage_avail_updated_m'
+                    , 'm'],
+            'storage_max_m': ['storage_max_m', 'm'],
+            'validity': ['validity', 'NA'],
+            'soil_reservoir_storage_deficit_updated_m': ['soil_reservoir_storage_deficit_updated_m'
+                    , 'm'],
+            'soil_reservoir_storage_deficit_m': ['soil_reservoir_storage_deficit_m'
+                    , 'm'],
+            'surface_runoff_depth_updated_m': ['surface_runoff_depth_updated_m'
+                    , 'm'],
+            'surface_runoff_depth_m': ['surface_runoff_depth_m', 'm'],
+            'soil_storage_avail_m': ['availible_soil_storage_m', 'm'],
+            'soil_storage_avail_updated_m': ['soil_storage_avail_updated_m'
+                    , 'm'],
+            'basin_area_km2': ['basin_area_km2', 'km2'],
+            'surface_runoff_ratio': ['surface_runoff_ratio', '%'],
+            'max_state_var_change_soilResDef': ['depth_of_water', 'm'],
+            'F': ['percent', '%'],
+            'enkf': ['enkf_flow', 'cfs'],
+            'x_prior': ['Qbefore_enkf_update', 'cfs'],
+            'x_post': ['Qafter_enkf_update', 'cfs'],
+            'x': ['mean', 'cfs'],
+            'z': ['obs', 'cfs'],
+            'P': ['covariance', 'NA'],
+            'dt': ['time_step', 'hour'],
+            'N': ['Number_of_ensembles', 'Day'],
+            'hx': ['observation_function', 'NA'],
+            'fx': ['state_transition_funciton', 'NA'],
+            }
 
-    #__________________________________________________________________
-    #__________________________________________________________________
+
+    # __________________________________________________________________
+    # __________________________________________________________________
     # BMI: Model Control Function
 
+
     def initialize(self, cfg_file=None, current_time_step=0):
-    #def initialize(self, x, P):
-        
-        #def initialize(self, cfg_file=None, current_time_step=0):
-        #------------------------------------------------------------
+
+    # def initialize(self, x, P):
+
+        # def initialize(self, cfg_file=None, current_time_step=0):
+        # ------------------------------------------------------------
         # this is the bmi configuration file
+
         self.cfg_file = cfg_file
-        self.current_time_step=current_time_step
+        self.current_time_step = current_time_step
+
+
         # ----- Create some lookup tabels from the long variable names --------#
         self._var_name_map_long_first = {long_name:self._var_name_units_map[long_name][0] for long_name in self._var_name_units_map.keys()}
         
@@ -85,197 +127,200 @@ class EnKF_wrap():
         
         self._var_units_map = {long_name:self._var_name_units_map[long_name][1] for long_name in self._var_name_units_map.keys()}
         
-        # -------------- Initalize all the variables --------------------------# 
+        # -------------- Initalize all the variables --------------------------#
         # -------------- so that they'll be picked up with the get functions --#
+
         for long_var_name in list(self._var_name_units_map.keys()):
+
             # ---------- All the variables are single values ------------------#
             # ---------- so just set to zero for now.        ------------------#
+
             self._values[long_var_name] = 0
-            setattr( self, self.get_var_name(long_var_name), 0 )
+            setattr(self, self.get_var_name(long_var_name), 0)
 
         ############################################################
         # ________________________________________________________ #
         # GET VALUES FROM CONFIGURATION FILE.                      #
-        self.config_from_json()   
-        # print(self.N)
-        
+
+        self.config_from_json()
+
         # ________________________________________________
         # Time control if incase update until may be used
+
         self.timestep_h = 1
         self.timestep_d = self.timestep_h / 24.0
         self.current_time_step = 0
         self.current_time = self.current_time_step
-        
+
             # ________________________________________________
         # Initial values for initialising the EnKF BMI
-        
-        
-        
+
         ########
         # x_post=self.x_post
-        self.x=self.x        
-        self.P=self.P
-        self.z=self.z
-        self.F=self.F
-        self.storage_max_m=self.storage_max_m
-        self.dim_z=len(self.z)
-        self.N=int(self.N)
-        self.dim_x=len(self.x)
+
+        self.x = self.x
+        self.P = self.P
+        self.z = self.z
+        self.F = self.F
+        self.storage_max_m = self.storage_max_m
+        self.dim_z = len(self.z)
+        self.N = int(self.N)
+        self.dim_x = len(self.x)
+
         # self.soil_storage_deficit= self.soil_storage_deficit
-        dt=self.dt
-        self.N=int(self.N)
-        F=self.F
-        max_state_var_change_soilResDef=self.max_soil_res_def
-        self.basin_area_km2=self.basin_area_km2 
-        print("initialized",self.basin_area_km2)
-        # print("% chnage of state var",self.L[1][1])
-        # x=self.x
-        # dt=self.dt
+
+        dt = self.dt
+        self.N = int(self.N)
+        F = self.F
+        max_state_var_change_soilResDef = self.max_soil_res_def
+        self.basin_area_km2 = self.basin_area_km2
         self._values['validity'] = self.validity
 
-    # CREATE AN INSTANCE OF THE EnKF MODEL #
+        # CREATE AN INSTANCE OF THE EnKF MODEL #
+
         self.enkf_model = EnKF.enkf()
-        
+
         # ________________________________________________
 
 
     def update(self):
-        self.x= self._values['x'] 
-        self.P=np.eye(1)*self._values['P']
-        self.dt=self._values['dt'] 
-        self.F=self.F
-        self.z=self._values['z']
+         # prepare variables so they can be set from the framework upon every update
+        self.x = self._values['x'] # mean from CFE perturbed
+        self.P = np.eye(1) * self._values['P'] # Covariance from CFE perturbed
+        self.dt = self._values['dt'] # timestep in seconds
+        self.F = self.F # mean muliplier
+        self.z = self._values['z'] #observation
         self.surface_runoff = self._values['surface_runoff_depth_m']
-        self.soil_storage_deficit = self._values['soil_reservoir_storage_deficit_m'] # get from CFE peturbed == CFE pet
-        self.storage_max_m=self._values['storage_max_m']
-        print("Beginning----------------------------") #beginning of print statements
-        print("self.f", self.F)
-        print("soil_storage_deficit_from CFE",self.soil_storage_deficit)
-        self.soil_storage_avail  = self._values['soil_storage_avail_m']
-        
-        self.basin_area_km2=self.basin_area_km2
-        
-        self.max_soil_res_def=self._values['max_state_var_change_soilResDef']
-        
+        self.soil_storage_deficit = \
+            self._values['soil_reservoir_storage_deficit_m']  # get from CFE peturbed == CFE pet
+        self.storage_max_m = self._values['storage_max_m']
+        self.soil_storage_avail = self._values['soil_storage_avail_m']
+        self.basin_area_km2 = self.basin_area_km2
+        self.max_soil_res_def = \
+            self._values['max_state_var_change_soilResDef']
         self.enkf_model.run_enkf(self)
-
         self._values['x_post'] = self.x_post
         self._values['x_prior'] = self.x
         self._values['enkf'] = self.res
-        self._values['factor'] = self.factor 
         self._values['validity'] = self.validity
-        self.soil_storage_deficit_updated=self._values['soil_reservoir_storage_deficit_updated_m']
- 
+        self.soil_storage_deficit_updated = \
+        self._values['soil_reservoir_storage_deficit_updated_m']
         
-        # soil_storage_avail_m
-        # print("check flot factor",self.factor)
-        #################### lookup equation ####################
-        #stream_diff = (self.x - self.z) # Difference between CFE and Obs
-        enkf_model_diff = (self.x - self.res) #Difference between CFE and EnKF
-       
-        basin_area_m2 =self.basin_area_km2*1000*1000# define config file. move from km to m2
+        #################### Update soil reservoir deficit ####################
 
-        total_volume_change_ft3 = (enkf_model_diff)*3600
+        enkf_model_diff = self.x - self.res  # Difference between CFE and EnKF
+        basin_area_m2 = self.basin_area_km2 * 1000 * 1000  # Defined in config file.Convert from km2 to m2
+        total_volume_change_ft3 = enkf_model_diff * 3600  # Convertto volume 
+        total_volume_change_m3 = 3.28 ** 3 * total_volume_change_ft3  # Convert ft3 to m3
+        total_volume_change_m = total_volume_change_m3 / basin_area_m2 # Convert to depth
         
-        total_volume_change_m3 =(3.28**3)*total_volume_change_ft3 #changing ft3 to m3
-        total_volume_change_m =total_volume_change_m3/basin_area_m2
+        
+        # For observation from USGS BMI is availible
+        
+        if self.validity == 1:
 
-        #print(total_volume_change_m)
-        if self.validity==1:
+                # First condition, if CFE is overstimating
 
-            ## CFE overstimation
-            if total_volume_change_m > 0: # 100 CFE is more
-                #leftover after filling void in the soil column
-                soil_moisture_def_diff_m  = total_volume_change_m - self.soil_storage_deficit # total mass compared to soil
+            if total_volume_change_m > 0:  # 100 CFE is more
 
-                # if the difference can be covered by the soil res deficit
-                if soil_moisture_def_diff_m <=0:        #def=160 tot=100
-# def is the max and avail is the actual availible void space
-                # update the availible storage by adding the difference 
-                    self.soil_storage_avail += total_volume_change_m                       # check if this is the avail not void
-                    self.soil_storage_deficit_updated=self.soil_storage_deficit-total_volume_change_m
-                    self._values['soil_reservoir_storage_deficit_updated_m'] = self.soil_storage_deficit_updated
-                # there will not be excess to be left over, everythin will be used by the soil
+                    # leftover after filling void in the soil column
+
+                soil_moisture_def_diff_m = total_volume_change_m \
+                    - self.soil_storage_deficit  # total mass compared to soil
+
+                    # if the difference can be covered by the soil res deficit
+
+                if soil_moisture_def_diff_m <= 0:  
+
+                    # def is the max and avail is the actual availible
+                    # update the availible storage by adding the difference
+
+                    self.soil_storage_avail += total_volume_change_m  # check if this is the avail not void
+                    self.soil_storage_deficit_updated = \
+                        self.soil_storage_deficit - total_volume_change_m
+                    self._values['soil_reservoir_storage_deficit_updated_m'] = \
+                        self.soil_storage_deficit_updated
+
+                    # there will not be excess to be left over, everythin will be used by the soil
+
                     leftover_depth_change_m = 0
 
-                # if the difference is beyond that can be accomodated by the soil
-                if soil_moisture_def_diff_m > 0: #+60
-                    leftover_depth_change_m = total_volume_change_m # the difference goes to updating the next state variable
-                    self.soil_storage_avail = self.storage_max_m #max from config (smcmax * D)
-                    self.soil_storage_deficit_updated = 0
-                    self._values['soil_reservoir_storage_deficit_updated_m'] = self.soil_storage_deficit_updated
+                    # if the difference is beyond that can be accomodated by the soil
 
-                # the remaining to be used for updating the next parameter    
+                if soil_moisture_def_diff_m > 0:  
+                    leftover_depth_change_m = total_volume_change_m  # the difference goes to updating the next state variable
+                    self.soil_storage_avail = self.storage_max_m  # max from config (smcmax * D)
+                    self.soil_storage_deficit_updated = 0
+                    self._values['soil_reservoir_storage_deficit_updated_m'] = \
+                        self.soil_storage_deficit_updated
+
+                    # the remaining to be used for updating the next parameter
+
                 if self.surface_runoff == 0:
                     self.surface_runoff_ratio = 1
-                    self._values['surface_runoff_ratio']=1 #Keep CFE as it is, ratio is 1. 
-                    self._values['surface_runoff_depth_updated_m']=self.surface_runoff
-                    
+                    self._values['surface_runoff_ratio'] = 1  # Keep CFE as it is, ratio is 1.
+                    self._values['surface_runoff_depth_updated_m'] = \
+                        self.surface_runoff
                 else:
-                    leftover_vol_m3_sec= leftover_depth_change_m*basin_area_m2/3600
-                    leftover_vol_ft3_sec=leftover_vol_m3_sec/(3.28**3)
-                    self.surface_runoff_ratio=(self.x-leftover_vol_ft3_sec)/self.x
-                    self._values['surface_runoff_ratio']=self.surface_runoff_ratio
-                    self.surface_runoff = self.surface_runoff_ratio*self.surface_runoff
-                    # self._values['surface_runoff_depth_updated_m']=self.surface_runoff
-                    self._values['surface_runoff_depth_updated_m']=self.surface_runoff
-                    print("surface_runoff_ratio",self._values['surface_runoff_depth_updated_m'])
-                    print("Leftover vol", leftover_vol_ft3_sec)
-                    print("surface _runoff",self.surface_runoff)
 
-                    ############################################################################################              
-                    print("***********over estimaiton ratio",self.surface_runoff_ratio)
-                    print("Observation BMI", self.z)
-                    #print("new value",self.surface_runoff)
-                    print("CFE",self.x)
-                    print("enkf",self.res)
+                    leftover_vol_m3_sec = leftover_depth_change_m \
+                        * basin_area_m2 / 3600
+                    leftover_vol_ft3_sec = leftover_vol_m3_sec / 3.28 ** 3
+                    self.surface_runoff_ratio = (self.x - leftover_vol_ft3_sec) \
+                        / self.x
+                    self._values['surface_runoff_ratio'] = \
+                        self.surface_runoff_ratio
+                    self.surface_runoff = self.surface_runoff_ratio \
+                        * self.surface_runoff
+
+                        # self._values['surface_runoff_depth_updated_m']=self.surface_runoff
+
+                    self._values['surface_runoff_depth_updated_m'] = \
+                        self.surface_runoff
 
 
             ## CFE understimation
             if total_volume_change_m < 0:
-                soil_moisture_def_diff_m = abs(total_volume_change_m) #+ self.soil_storage_deficit
+                soil_moisture_def_diff_m = abs(total_volume_change_m)  # + self.soil_storage_deficit
                 leftover_depth_change_m = soil_moisture_def_diff_m
 
-                self.soil_storage_deficit_updated = 0   # set by CFE
-                self.soil_storage_avail=self.soil_storage_avail
-                self._values['surface_runoff_depth_updated_m']=self.surface_runoff
+                self.soil_storage_deficit_updated = 0  # set by CFE
+                self.soil_storage_avail = self.soil_storage_avail
+                self._values['surface_runoff_depth_updated_m'] = self.surface_runoff
                 if self.surface_runoff == 0:
                     self.surface_runoff_ratio = 1
-                    self._values['surface_runoff_ratio']=1
-                    self._values['surface_runoff_depth_updated_m']=self.surface_runoff
-
-
+                    self._values['surface_runoff_ratio'] = 1
+                    self._values['surface_runoff_depth_updated_m'] = \
+                        self.surface_runoff
                 else:
-                    leftover_vol_m3_sec= leftover_depth_change_m*basin_area_m2/3600
-                    leftover_vol_ft3_sec=leftover_vol_m3_sec/(3.28**3)                
-                    self.surface_runoff_ratio=(self.x+leftover_vol_ft3_sec)/self.x
 
-                    # self.surface_runoff_ratio = ((self.surface_runoff + leftover_depth_change_m)/(self.surface_runoff))
-                    self._values['surface_runoff_ratio']=self.surface_runoff_ratio
-                    self.surface_runoff = self.surface_runoff_ratio*self.surface_runoff
-
-                    self._values['surface_runoff_depth_updated_m']=self.surface_runoff
-                    print("***********under estimaiton ratio",self.surface_runoff_ratio)
-                    print("Observation BMI", self.z)
-                    #print("under estimaiton",self.surface_runoff)
-                    print("CFE",self.x)
-                    print("enkf",self.res)
-                    # if validity check
+                    leftover_vol_m3_sec = leftover_depth_change_m * basin_area_m2 \
+                        / 3600
+                    leftover_vol_ft3_sec = leftover_vol_m3_sec / 3.28 ** 3
+                    self.surface_runoff_ratio = (self.x + leftover_vol_ft3_sec) \
+                        / self.x
+                    self._values['surface_runoff_ratio'] = self.surface_runoff_ratio
+                    self.surface_runoff = self.surface_runoff_ratio \
+                        * self.surface_runoff
+                    self._values['surface_runoff_depth_updated_m'] = \
+                        self.surface_runoff
+                    
+       # check validity of collected USGS measurement
         elif self.validity==0:
-            self._values['surface_runoff_depth_updated_m']=self._values['surface_runoff_depth_m']
-            self._values['soil_reservoir_storage_deficit_updated_m']=self._values['soil_reservoir_storage_deficit_m']
-            self._values['surface_runoff_ratio']=1
+            self._values['surface_runoff_depth_updated_m'] = \
+                self._values['surface_runoff_depth_m']
+            self._values['soil_reservoir_storage_deficit_updated_m'] = \
+                self._values['soil_reservoir_storage_deficit_m']
+            self._values['surface_runoff_ratio'] = 1
             self.surface_runoff_ratio = 1
-            # self.res=self.x
-            print(" warning validity is zero")
-        
-            #BMI: Model Control Function
-####################################################################
+
+
+
     # BMI: Model Control Function if update until may be used (not functional)
     def update_until(self, until):
         for i in range(self.current_time_step, until, self.time_step_size):
             self.enkf_model.run_enkf(self)
-            self.scale_output()
+            
             self.current_time += self.time_step_size
 
             if self.current_time >= until:
@@ -284,6 +329,9 @@ class EnKF_wrap():
         self.current_time_step = self.current_time
         
     # __________________________________________________________________________________________________________
+    ####################################################################
+            # BMI: Model Control Function
+    ####################################################################
     # __________________________________________________________________________________________________________        
 
 
@@ -299,48 +347,22 @@ class EnKF_wrap():
     
     # ________________________________________________
     def reset_enkf_inputs(self):
-        self.x             = 0
-        self.P       = 0
-        self.z       = 0
-        self.F       = 0
-        self.dt       = 0
-        self.N       = 0
+        self.x = 0
+        self.P = 0
+        self.z = 0
+        self.F = 0
+        self.dt = 0
+        self.N = 0
 
         return
+
     def finalize_enkf(self, verbose=True):
         
         self.x       = self.P
         if verbose:            
             print("\n Data assimilation completed!")
             print()
-        return self.x
-#     def scale_output(self): #set output with doc string 
-
-#         #
-#         self._values['L'] = self.L
-#         # self._values['N'] = int(self.N)
-       
-#         #
         
-#         # self._values['x_post'] = update
-#         # self._values['x_prior'] = self.enkf_model.x_post
-#         # self._values['factor']= self._values['x_post']//self._values['x_prior'] # round up factor values to int comment round it up
-        
-#         #
-#         # self._values['dim_x'] = self.dim_x
-#         #self.x, self.P, self.dim_z,self.dt, self.N,self.hx, self.fx
-        
-    def scale_output(self):
-
-        self._values['x'] = self.x
-        self._values['P'] = self.P
-        #self._values['F'] = self.F
-        self._values['dt'] = self.dt
-        self._values['z'] = self.z
-        self._values['N'] = self.N
-        self._values['basin_area_km2']=self.basin_area_km2
-        # self._values['validity'] = self.validity
-        #self._values['site'] = self.total_discharge
     #________________________________________________________
     
     #________________________________________________________
@@ -348,15 +370,15 @@ class EnKF_wrap():
         with open(self.cfg_file) as data_file:
             data_loaded = json.load(data_file)
         # MANDATORY CONFIGURATIONS
-        self.dt                 = data_loaded['time_step_in_seconds']
-        self.x                  =np.array([float(data_loaded['initial_mean'])])
-        self.P                 =np.eye(1)*float(data_loaded['initial_cov'])
-        self.z                 =np.array([float(data_loaded['initial_obs'])])
-        self.F           =float(data_loaded['state_transition_multiplier_matrix'])
-        self.N           =data_loaded['Number_of_ensembles']
-        self.L           = np.array(data_loaded['look_up_table'])
-        self.max_soil_res_def =data_loaded['max_state_var_change_soilResDef']
-        self.basin_area_km2=data_loaded['basin_area_km2']
+        self.dt = data_loaded['time_step_in_seconds']
+        self.x = np.array([float(data_loaded['initial_mean'])])
+        self.P = np.eye(1) * float(data_loaded['initial_cov'])
+        self.z = np.array([float(data_loaded['initial_obs'])])
+        self.F = float(data_loaded['state_transition_multiplier_matrix'])
+        self.N = data_loaded['Number_of_ensembles']
+        self.L = np.array(data_loaded['look_up_table'])
+        self.max_soil_res_def = data_loaded['max_state_var_change_soilResDef']
+        self.basin_area_km2 = data_loaded['basin_area_km2']
         
         return
 
