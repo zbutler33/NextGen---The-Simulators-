@@ -7,8 +7,8 @@ Summary
 --------
 This code is built on the original CFE model but with added peturbation and state variable updates for data assimilation.
 The updated state variables are "soil_reservoir_storage_deficit_m" and "surface_runoff_depth_m". 
-They are updated by multiplying a "time_state_var_change_soil" and or "time_state_var_change_runoff". 
-These factors to update the state variables are determined by the Ensemble Kalman Filter (EnKF) data assimilation code (EnKF.py).
+They are updated by multiplying a "time_state_var_change_runoff". 
+    - The changing of "soil_reservoir_storage_deficit_m" is done by logical statements based on how much water the soil can take in Bmi_da_ENKF_forSBMI.py
 Based on the EnKF updated streamflow, the state variables can be updated each timestep for proper data assimilation technique.
     - See "Bmi_da_ENKF_forSBMI.py" for how each state variable is explicitly updated. 
 
@@ -24,7 +24,7 @@ Fitsume Teshome Wolkeba. fwolkeba@crimson.ua.edu
 
 Inputs
 --------
-"time_state_var_change_soil" and "time_state_var_change_runoff" from EnKF data assimilation.
+"time_state_var_change_runoff" from EnKF data assimilation.
 "self.number_of_ensemble" and "self.peturbation_factor" from config file.
 
 Outputs
@@ -73,7 +73,7 @@ class CFE():
         # Updating soil_reservoir_storage_deficit_m based on state variable changed from EnKF data assimilation
         cfe_state.soil_reservoir_storage_deficit_m = (cfe_state.soil_params['smcmax'] * \
                                                  cfe_state.soil_params['D'] - \
-                                                 cfe_state.soil_reservoir['storage_m'] * (cfe_state.time_state_var_change_soil))         
+                                                 cfe_state.soil_reservoir['storage_m'])         
                                                  
         #_________________________________________________
         # soil reservoir storage cannot be negative 
