@@ -57,18 +57,6 @@ class CFE():
         # timestep_rainfall_input_m = f(timestep_rainfall_input_m, potential_et_m_per_timestep)
         self.et_from_rainfall(cfe_state)
         
-        # ________________________________________________   
-        #-----------------------------------------------------
-        # Chane the state variable, soil_reservoir_storage_deficit_m
-        """
-
-        This will edit the soil storage to see how changes in it will affect streamflow
-        To start, we will create a list of %'s to multiple the soil_reservoir_storage_deficit_m by
-        - Keep track of changes in streamflow to see how this variable will affect
-        - Smaller percent change (more soil storage), makes the flow lower ?? 
-        - Need to develop logic (if) statement based on how final DA runoff is 
-
-        """     
         #_________________________________________________
         # Updating soil_reservoir_storage_deficit_m based on state variable changed from EnKF data assimilation
         cfe_state.soil_reservoir_storage_deficit_m = (cfe_state.soil_params['smcmax'] * \
