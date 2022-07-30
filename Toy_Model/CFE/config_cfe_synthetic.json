@@ -2,7 +2,7 @@
     "forcing_file":"./Forcing/forcing_data_synthetic.csv",
     "catchment_area_km2":10,
     "peturbation_factor": 0.75,
-    "number_of_ensemble": 7,
+    "number_of_ensemble": 500,
     "alpha_fc":0.33,
     "soil_params":{
         "depth":2.0,

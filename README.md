@@ -17,7 +17,7 @@ Name: 'bmi_cfe_enkf_peturb.py' which references originial CFE Model, 'cfe_peturb
 	- BMI references 'config_cfe_peturb_model_CT_calibration.json', which defines catchment characteristics, # of ensembles, and peturbation factor
 		- 'cat' file references fake forcing data, 'Toy_Model/Forcing/forcing_data_May17.csv'
 		- User can use any config or forcing data they want as long as it is in the same format
-	- BMI runs over 7 ensembles with a uniform random distribution of the outflow based on a peturbation factor of 0.75 of the outflow
+	- BMI runs over 500 ensembles with a uniform random distribution of the outflow based on a peturbation factor of 0.75 of the outflow
 	- Has state var change option to change state vars based on DA
 		- Need to update state vars every DA time step
 	- This allows for a covariance matrix and mean to be created from the ensembles, which is needed to run the EnKF DA
